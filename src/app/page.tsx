@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 
 import { getCurrentUser } from "@/features/auth/api/get-current-user";
 
+//************************************************************** */
+
 export default function HomePage() {
   const router = useRouter();
 
@@ -28,6 +30,8 @@ export default function HomePage() {
     };
   }, [router]);
 
+//************************************************************** */
+
   return (
     <main className="grid min-h-screen place-items-center bg-zinc-50">
       <p className="text-sm text-zinc-500">
@@ -36,3 +40,5 @@ export default function HomePage() {
     </main>
   );
 }
+
+//************************************************************** */

@@ -4,11 +4,15 @@ import { AuthShell } from "@/features/auth/components/AuthShell";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { formatPlanName } from "@/features/auth/auth.utils";
 
+//************************************************************** */
+
 type RegisterPageProps = {
   searchParams: Promise<{
     plan?: string | string[];
   }>;
 };
+
+//************************************************************** */
 
 export default async function RegisterPage({
   searchParams,
@@ -39,3 +43,5 @@ export default async function RegisterPage({
     </AuthShell>
   );
 }
+
+//************************************************************** */
