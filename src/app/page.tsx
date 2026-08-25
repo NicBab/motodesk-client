@@ -1,11 +1,38 @@
+"use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+import { getCurrentUser } from "@/features/auth/api/get-current-user";
+
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    let active = true;
+
+    getCurrentUser()
+      .then(() => {
+        if (!active) return;
+
+        router.replace("/dashboard");
+      })
+      .catch(() => {
+        if (!active) return;
+
+        router.replace("/login");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-     MotoDesk
-      </main>
-    </div>
+    <main className="grid min-h-screen place-items-center bg-zinc-50">
+      <p className="text-sm text-zinc-500">
+        Loading MotoDesk...
+      </p>
+    </main>
   );
 }
