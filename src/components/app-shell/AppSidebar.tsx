@@ -27,8 +27,8 @@ const navigationItems = [
     icon: Users,
   },
   {
-    href: "/units",
-    label: "Units",
+    href: "/vehicles",
+    label: "Vehicles",
     icon: Bike,
   },
   {

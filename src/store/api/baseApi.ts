@@ -1,3 +1,5 @@
+//************************************************************** */
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import { clientEnv } from "@/config/env";
@@ -17,7 +19,7 @@ export const baseApi = createApi({
     "Organization",
     "Membership",
     "Customer",
-    "Unit",
+    "Vehicle",
     "RepairOrder",
     "Part",
     "Inventory",

@@ -1,3 +1,5 @@
+//************************************************************** */
+
 export function createOrganizationSlug(name: string): string {
   return name
     .trim()

@@ -1,3 +1,5 @@
+//************************************************************** */
+
 "use client";
 
 import { type FormEvent, useState } from "react";
@@ -9,60 +11,28 @@ import { registerAccount } from "../api/register";
 
 import { createOrganizationSlug, isStrongPassword } from "../auth.utils";
 
+import { useAppDispatch } from "@/store/hooks";
+
+import { baseApi } from "@/store/api/baseApi";
+
+import { Eye, EyeOff } from "lucide-react";
+
+//************************************************************** */
+
 type RegisterFormProps = {
   plan: string | null;
 };
 
+//************************************************************** */
+
 const inputClasses =
   "h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 hover:border-zinc-400 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10";
 
-function EyeIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      className="h-5 w-5"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6S2.25 12 2.25 12Z"
-      />
-      <circle cx="12" cy="12" r="2.75" />
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      className="h-5 w-5"
-      aria-hidden="true"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="m3 3 18 18" />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M10.6 6.2A10.6 10.6 0 0 1 12 6c6.25 0 9.75 6 9.75 6a16 16 0 0 1-2.1 2.8M6.3 6.3C3.65 8.1 2.25 12 2.25 12S5.75 18 12 18a10 10 0 0 0 3.1-.48"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9.9 9.9a3 3 0 0 0 4.2 4.2"
-      />
-    </svg>
-  );
-}
+//************************************************************** */
 
 export function RegisterForm({ plan }: RegisterFormProps) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -136,6 +106,8 @@ export function RegisterForm({ plan }: RegisterFormProps) {
         sessionStorage.setItem("motodesk:selected-plan", plan.toLowerCase());
       }
 
+      dispatch(baseApi.util.resetApiState());
+
       router.replace("/dashboard");
       router.refresh();
     } catch (caughtError) {
@@ -148,6 +120,8 @@ export function RegisterForm({ plan }: RegisterFormProps) {
       setIsSubmitting(false);
     }
   }
+
+  //************************************************************** */
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
@@ -331,7 +305,11 @@ export function RegisterForm({ plan }: RegisterFormProps) {
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
               >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </label>
@@ -363,7 +341,11 @@ export function RegisterForm({ plan }: RegisterFormProps) {
                 }
                 aria-pressed={showConfirmPassword}
               >
-                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
               </button>
             </div>
           </label>
@@ -390,3 +372,5 @@ export function RegisterForm({ plan }: RegisterFormProps) {
     </form>
   );
 }
+
+//************************************************************** */

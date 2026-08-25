@@ -1,7 +1,10 @@
+//************************************************************** */
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "./StoreProvider";
+import { AppToaster } from "@/components/ui/AppToaster";
 
 //************************************************************** */
 
@@ -33,7 +36,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body>
-        <StoreProvider>{children}</StoreProvider>
+        <StoreProvider>
+          {children}
+          <AppToaster />
+        </StoreProvider>
       </body>
     </html>
   );

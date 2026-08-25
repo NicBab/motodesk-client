@@ -1,3 +1,5 @@
+//************************************************************** */
+
 import { clientEnv } from "@/config/env";
 import { ApiError, type ApiErrorPayload } from "./api-error";
 

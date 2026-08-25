@@ -36,6 +36,8 @@ export function LogoutButton() {
     }
   }
 
+  //************************************************************** */
+
   return (
     <button
       type="button"
