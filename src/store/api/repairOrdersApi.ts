@@ -569,37 +569,50 @@ export const repairOrdersApi = baseApi.injectEndpoints({
       ],
     }),
 
-    completeRepairOrderLaborLine: builder.mutation<
-      RepairOrderLaborActionResult,
-      RepairOrderLaborActionInput
-    >({
-      query: ({ organizationId, repairOrderId, laborLineId, notes }) => ({
-        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/labor-lines/${laborLineId}/complete`,
-        method: "POST",
-        body: {
-          ...(notes !== undefined ? { notes } : {}),
-        },
-      }),
+completeRepairOrderLaborLine: builder.mutation<
+  RepairOrderLaborLine,
+  RepairOrderLaborActionInput
+>({
+  query: ({
+    organizationId,
+    repairOrderId,
+    laborLineId,
+    notes,
+  }) => ({
+    url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/labor-lines/${laborLineId}/complete`,
+    method: "POST",
+    body: {
+      ...(notes !== undefined
+        ? { notes }
+        : {}),
+    },
+  }),
 
-      transformResponse: (
-        response: ApiSuccessResponse<RepairOrderLaborActionResult>,
-      ) => response.data,
+  transformResponse: (
+    response: ApiSuccessResponse<
+      RepairOrderLaborLine
+    >,
+  ) => response.data,
 
-      invalidatesTags: (_result, _error, { repairOrderId }) => [
-        {
-          type: "RepairOrder",
-          id: repairOrderId,
-        },
-        {
-          type: "RepairOrder",
-          id: "LIST",
-        },
-        {
-          type: "RepairOrder",
-          id: "LABOR",
-        },
-      ],
-    }),
+  invalidatesTags: (
+    _result,
+    _error,
+    { repairOrderId },
+  ) => [
+    {
+      type: "RepairOrder",
+      id: repairOrderId,
+    },
+    {
+      type: "RepairOrder",
+      id: "LIST",
+    },
+    {
+      type: "RepairOrder",
+      id: "LABOR",
+    },
+  ],
+}),
     deleteRepairOrderLaborLine: builder.mutation<
       { success: true },
       RepairOrderLaborActionInput

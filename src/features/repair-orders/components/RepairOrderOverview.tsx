@@ -217,6 +217,7 @@ export function RepairOrderOverview({
         onStatusChange={handleStatusChange}
         onPassQualityCheck={handlePassQualityCheck}
         onFailQualityCheck={handleFailQualityCheck}
+
         pauseNotes={pauseNotes}
         onPauseNotesChange={setPauseNotes}
         onPause={handlePause}
@@ -307,9 +308,10 @@ function LifecycleActions({
   onStatusChange,
   onPassQualityCheck,
   onFailQualityCheck,
+
   onPauseNotesChange,
   pauseNotes,
-  onPause,
+    onPause,
   onResume,
 }: LifecycleActionsProps) {
   const status = repairOrder.status;
@@ -325,6 +327,117 @@ function LifecycleActions({
           Available actions are based on the current repair-order status.
         </p>
       </div>
+
+      {/* {status === "QUALITY_CHECK" ? (
+        <div className="mt-4 space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-xs font-semibold text-zinc-700">
+              Quality check notes
+            </span>
+
+            <textarea
+              value={qualityCheckNotes}
+              onChange={(event) =>
+                onQualityCheckNotesChange(event.target.value)
+              }
+              rows={3}
+              placeholder="Optional for pass. Required for failure."
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+            />
+          </label>
+
+          
+
+          <div className="flex flex-wrap gap-2">
+            <ActionButton
+              icon={CheckCircle2}
+              label="Pass QC"
+              disabled={disabled}
+              onClick={() => void onPassQualityCheck()}
+            />
+
+            <ActionButton
+              icon={XCircle}
+              label="Fail QC"
+              disabled={disabled}
+              onClick={() => void onFailQualityCheck()}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {status === "ESTIMATE" ? (
+            <ActionButton
+              icon={Send}
+              label="Request approval"
+              disabled={disabled}
+              onClick={() => void onRequestApproval()}
+            />
+          ) : null}
+
+          {status === "APPROVED" ? (
+            <ActionButton
+              icon={PackageCheck}
+              label="Complete parts review"
+              disabled={disabled}
+              onClick={() => void onCompletePartsReview()}
+            />
+          ) : null}
+
+          {status === "READY_TO_WORK" ? (
+            <ActionButton
+              icon={Clock3}
+              label="Start work"
+              disabled={disabled}
+              onClick={() =>
+                void onStatusChange(
+                  "IN_PROGRESS",
+                  "Repair order moved to In Progress.",
+                )
+              }
+            />
+          ) : null}
+
+          
+
+          {status === "IN_PROGRESS" ? (
+            <ActionButton
+              icon={CheckCircle2}
+              label="Mark work complete"
+              disabled={disabled}
+              onClick={() =>
+                void onStatusChange(
+                  "WORK_COMPLETE",
+                  "Repair order marked Work Complete.",
+                )
+              }
+            />
+          ) : null}
+
+          {status === "WORK_COMPLETE" ? (
+            <ActionButton
+              icon={CheckCircle2}
+              label="Begin quality check"
+              disabled={disabled}
+              onClick={() =>
+                void onStatusChange("QUALITY_CHECK", "Quality check started.")
+              }
+            />
+          ) : null}
+
+          {![
+            "ESTIMATE",
+            "APPROVED",
+            "READY_TO_WORK",
+            "IN_PROGRESS",
+            "WORK_COMPLETE",
+          ].includes(status) ? (
+            <p className="text-xs text-zinc-400">
+              No direct Overview actions are available for this status.
+            </p>
+          ) : null}
+        </div>
+      )} */}
 
       {status === "QUALITY_CHECK" ? (
         <div className="mt-4 space-y-4">

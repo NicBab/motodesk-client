@@ -3,7 +3,6 @@
 import {
   Check,
   CheckCircle2,
-  Clock3,
   Pencil,
   Plus,
   Trash2,
@@ -15,14 +14,11 @@ import { useState } from "react";
 
 import { toast } from "sonner";
 
-// import { useGetMembershipsQuery } from "../../../store/api/memberships.Api";
-
 import {
   useCompleteRepairOrderLaborLineMutation,
   useCreateRepairOrderLaborLineMutation,
   useDeleteRepairOrderLaborLineMutation,
   useGetRepairOrderLaborLinesQuery,
-  useStartRepairOrderLaborLineMutation,
   useUpdateRepairOrderLaborLineMutation,
 } from "@/store/api/repairOrdersApi";
 
@@ -80,14 +76,14 @@ export function RepairOrderLaborTab({
   const [deleteLaborLine, { isLoading: isDeleting }] =
     useDeleteRepairOrderLaborLineMutation();
 
-  const [startLaborLine, { isLoading: isStarting }] =
-    useStartRepairOrderLaborLineMutation();
-
   const [completeLaborLine, { isLoading: isCompleting }] =
     useCompleteRepairOrderLaborLineMutation();
 
-  const actionDisabled =
-    isCreating || isUpdating || isDeleting || isStarting || isCompleting;
+  const actionDisabled = isCreating || isUpdating || isDeleting || isCompleting;
+
+  const incompleteLaborLines = laborLines.filter(
+    (laborLine) => !laborLine.completed && laborLine.status !== "CANCELLED",
+  );
 
   async function handleCreate() {
     const trimmedDescription = description.trim();
@@ -124,7 +120,6 @@ export function RepairOrderLaborTab({
         technicianMembershipId: technicianMembershipId || undefined,
 
         hours: parsedHours,
-
         rate: parsedRate,
       }).unwrap();
 
@@ -192,8 +187,11 @@ export function RepairOrderLaborTab({
 
         data: {
           description: trimmedDescription,
+
           hours: parsedHours,
+
           rate: parsedRate,
+
           technicianMembershipId: editTechnicianMembershipId || undefined,
         },
       }).unwrap();
@@ -232,33 +230,53 @@ export function RepairOrderLaborTab({
     }
   }
 
-//   async function handleStart(laborLineId: string) {
-//     try {
-//       await startLaborLine({
-//         organizationId,
-//         repairOrderId: repairOrder.id,
-//         laborLineId,
-//       }).unwrap();
+  async function handleComplete(laborLineId: string) {
+    if (repairOrder.status !== "IN_PROGRESS") {
+      toast.error("Start the repair order before completing labor.");
 
-//       toast.success("Labor started.");
-//     } catch {
-//       toast.error("MotoDesk could not start labor.");
-//     }
-//   }
+      return;
+    }
 
-//   async function handleComplete(laborLineId: string) {
-//     try {
-//       await completeLaborLine({
-//         organizationId,
-//         repairOrderId: repairOrder.id,
-//         laborLineId,
-//       }).unwrap();
+    try {
+      await completeLaborLine({
+        organizationId,
+        repairOrderId: repairOrder.id,
+        laborLineId,
+      }).unwrap();
 
-//       toast.success("Labor completed.");
-//     } catch {
-//       toast.error("MotoDesk could not complete labor.");
-//     }
-//   }
+      toast.success("Labor operation completed.");
+    } catch {
+      toast.error("MotoDesk could not complete the labor operation.");
+    }
+  }
+
+  async function handleCompleteAll() {
+    if (repairOrder.status !== "IN_PROGRESS") {
+      toast.error("Start the repair order before completing labor.");
+
+      return;
+    }
+
+    if (incompleteLaborLines.length === 0) {
+      toast.success("All labor operations are already complete.");
+
+      return;
+    }
+
+    try {
+      for (const laborLine of incompleteLaborLines) {
+        await completeLaborLine({
+          organizationId,
+          repairOrderId: repairOrder.id,
+          laborLineId: laborLine.id,
+        }).unwrap();
+      }
+
+      toast.success("All labor operations completed.");
+    } catch {
+      toast.error("MotoDesk could not complete all labor operations.");
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -318,15 +336,30 @@ export function RepairOrderLaborTab({
       </section>
 
       <section className="rounded-xl border border-zinc-200 bg-white">
-        <div className="border-b border-zinc-200 px-5 py-4">
-          <h3 className="text-sm font-semibold text-zinc-900">
-            LABOR OPERATIONS
-          </h3>
+        <div className="flex items-center justify-between gap-4 border-b border-zinc-200 px-5 py-4">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">
+              Labor operations
+            </h3>
 
-          <p className="mt-1 text-xs text-zinc-500">
-            Edit, remove, start, and complete labor operations as work
-            progresses.
-          </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Manage labor operations and mark work complete as each operation
+              is finished.
+            </p>
+          </div>
+
+          {repairOrder.status === "IN_PROGRESS" &&
+          incompleteLaborLines.length > 0 ? (
+            <button
+              type="button"
+              disabled={actionDisabled}
+              onClick={() => void handleCompleteAll()}
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Complete all
+            </button>
+          ) : null}
         </div>
 
         {isLoading ? (
@@ -350,6 +383,13 @@ export function RepairOrderLaborTab({
                           setEditDescription(event.target.value)
                         }
                         className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+                      />
+
+                      <RepairOrderTechnicianSelect
+                        organizationId={organizationId}
+                        value={editTechnicianMembershipId}
+                        onChange={setEditTechnicianMembershipId}
+                        disabled={actionDisabled}
                       />
 
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -401,6 +441,7 @@ export function RepairOrderLaborTab({
                           <span>Rate: {formatCurrency(laborLine.rate)}</span>
 
                           <span>Status: {formatLabel(laborLine.status)}</span>
+
                           {laborLine.startedAt ? (
                             <span>
                               Actual:{" "}
@@ -433,19 +474,9 @@ export function RepairOrderLaborTab({
                           </button>
                         ) : null}
 
-                        {/* {!laborLine.startedAt && !laborLine.completed ? (
-                          <button
-                            type="button"
-                            disabled={actionDisabled}
-                            onClick={() => void handleStart(laborLine.id)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 text-xs font-semibold text-zinc-600 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-50"
-                          >
-                            <Clock3 className="h-3.5 w-3.5" />
-                            Start
-                          </button>
-                        ) : null} */}
-{/* 
-                        {laborLine.startedAt && !laborLine.completed ? (
+                        {!laborLine.completed &&
+                        laborLine.status !== "CANCELLED" &&
+                        repairOrder.status === "IN_PROGRESS" ? (
                           <button
                             type="button"
                             disabled={actionDisabled}
@@ -455,7 +486,7 @@ export function RepairOrderLaborTab({
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             Complete
                           </button>
-                        ) : null} */}
+                        ) : null}
 
                         {laborLine.completed ? (
                           <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700">
