@@ -1,8 +1,4 @@
-//************************************************************** */
-
-export type CustomerType =
-  | "INDIVIDUAL"
-  | "BUSINESS";
+export type CustomerType = "INDIVIDUAL" | "BUSINESS";
 
 //************************************************************** */
 
@@ -26,6 +22,12 @@ export type Customer = {
   state: string | null;
   postalCode: string | null;
   country: string | null;
+
+  taxExempt: boolean;
+  taxId: string | null;
+
+  discountPercent: string;
+  vehicleCount?: number;
 
   notes: string | null;
 
@@ -74,6 +76,11 @@ export type CreateCustomerInput = {
   postalCode?: string;
   country?: string;
 
+  taxExempt?: boolean;
+  taxId?: string;
+
+  discountPercent?: number;
+
   notes?: string;
 };
 
@@ -96,6 +103,11 @@ export type UpdateCustomerData = {
   state?: string;
   postalCode?: string;
   country?: string;
+
+  taxExempt?: boolean;
+  taxId?: string;
+
+  discountPercent?: number;
 
   notes?: string;
 };

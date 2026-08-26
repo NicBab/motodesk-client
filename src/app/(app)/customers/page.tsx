@@ -228,6 +228,8 @@ export default function CustomersPage() {
 
                     <CustomerTableHeading>Location</CustomerTableHeading>
 
+                    <CustomerTableHeading>Vehicles</CustomerTableHeading>
+
                     <CustomerTableHeading>Status</CustomerTableHeading>
 
                     <CustomerTableHeading align="right">

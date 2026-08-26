@@ -3,6 +3,7 @@
 import {
   Archive,
   Building2,
+  CarFront,
   Mail,
   Phone,
   RotateCcw,
@@ -57,8 +58,9 @@ export function CustomerRow({
     .filter(Boolean)
     .join(", ");
 
-    //************************************************************** */
-    
+  const vehicleCount =
+    customer.vehicleCount ?? 0;
+//************************************************************** */
   return (
     <tr className="group border-b border-zinc-100 transition last:border-b-0 hover:bg-zinc-50">
       <td className="p-0">
@@ -130,6 +132,22 @@ export function CustomerRow({
 
       <td className="px-4 py-4 text-xs text-zinc-600">
         {location || "—"}
+      </td>
+
+      <td className="px-4 py-4">
+        <div className="inline-flex items-center gap-2 text-xs text-zinc-600">
+          <CarFront className="h-4 w-4 text-zinc-400" />
+
+          <span className="font-semibold text-zinc-900">
+            {vehicleCount}
+          </span>
+
+          <span className="text-zinc-400">
+            {vehicleCount === 1
+              ? "vehicle"
+              : "vehicles"}
+          </span>
+        </div>
       </td>
 
       <td className="px-4 py-4">

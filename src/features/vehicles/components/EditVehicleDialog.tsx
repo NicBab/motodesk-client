@@ -16,6 +16,10 @@ import { VehicleDialogShell } from "./VehicleDialogShell";
 
 import { VehicleForm, type VehicleFormValues } from "./VehicleForm";
 
+import { VehicleServiceHistoryTab } from "./VehicleServiceHistoryTab";
+
+import { VehicleTabs, type VehicleTab } from "./VehicleTabs";
+
 //************************************************************** */
 
 type EditVehicleDialogProps = {
@@ -44,12 +48,14 @@ export function EditVehicleDialog({
 }: EditVehicleDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<VehicleTab>("details");
+
   const [updateVehicle, { isLoading }] = useUpdateVehicleMutation();
 
   if (!open || !vehicle) {
     return null;
   }
-//************************************************************** */
+  //************************************************************** */
   async function handleSubmit(
     values: VehicleFormValues | UpdateVehicleData,
   ): Promise<void> {
@@ -81,36 +87,50 @@ export function EditVehicleDialog({
       toast.error(message);
     }
   }
-
+  //************************************************************** */
   return (
     <VehicleDialogShell
-      title="Edit vehicle"
-      description="Update vehicle identity, ownership, inventory, and sales information."
+      title="Vehicle"
+      description="View vehicle details and complete service history."
       onClose={onClose}
     >
-      {error ? (
-        <div
-          role="alert"
-          className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-        >
-          {error}
-        </div>
-      ) : null}
+      <VehicleTabs activeTab={activeTab} onChange={setActiveTab} />
 
-      <VehicleForm
-        organizationId={organizationId}
-        vehicle={vehicle}
-        submitLabel="Save changes"
-        isSubmitting={isLoading}
-        onSubmit={handleSubmit}
-        onCancel={onClose}
-      />
+      <div className="pt-6">
+        {activeTab === "details" ? (
+          <>
+            {error ? (
+              <div
+                role="alert"
+                className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              >
+                {error}
+              </div>
+            ) : null}
+
+            <VehicleForm
+              organizationId={organizationId}
+              vehicle={vehicle}
+              submitLabel="Save changes"
+              isSubmitting={isLoading}
+              onSubmit={handleSubmit}
+              onCancel={onClose}
+            />
+          </>
+        ) : null}
+
+        {activeTab === "service" ? (
+          <VehicleServiceHistoryTab
+            organizationId={organizationId}
+            vehicleId={vehicle.id}
+          />
+        ) : null}
+      </div>
     </VehicleDialogShell>
   );
 }
 
 //************************************************************** */
-
 function getApiErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "status" in error) {
     const fetchError = error as FetchBaseQueryError;
