@@ -2,6 +2,7 @@
 
 type RepairOrderTab =
   | "overview"
+  | "actions"
   | "labor"
   | "parts"
   | "additional-work"
@@ -21,6 +22,10 @@ const tabs: Array<{
   {
     id: "overview",
     label: "Overview",
+  },
+  {
+    id: "actions",
+    label: "Actions",
   },
   {
     id: "labor",

@@ -1,12 +1,18 @@
 "use client";
 
-import { CheckCircle2, PackageCheck } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 import { toast } from "sonner";
 
 import { useCompleteRepairOrderPartsReviewMutation } from "@/store/api/repairOrdersApi";
 
 import type { RepairOrder } from "../repair-order.types";
+
+import { RepairOrderPartLineForm } from "./RepairOrderPartLineForm";
+
+import { RepairOrderPartLineList } from "./RepairOrderPartLineList";
+
+import { useGetRepairOrderPartLinesQuery } from "@/store/api/repairOrdersApi";
 
 type RepairOrderPartsTabProps = {
   organizationId: string;
@@ -33,49 +39,71 @@ export function RepairOrderPartsTab({
     }
   }
 
+  const {
+    data: partLines = [],
+    isLoading: isLoadingPartLines,
+    isError: isPartLinesError,
+  } = useGetRepairOrderPartLinesQuery({
+    organizationId,
+    repairOrderId: repairOrder.id,
+  });
+
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-zinc-200 bg-white p-5">
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-orange-50 text-orange-600">
-            <PackageCheck className="h-5 w-5" />
-          </div>
+      <RepairOrderPartLineForm
+        organizationId={organizationId}
+        repairOrderId={repairOrder.id}
+      />
 
+      <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
           <div>
             <h3 className="text-sm font-semibold text-zinc-900">
-              Parts review
+              REPAIR ORDER PARTS
             </h3>
 
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
-              Review the parts required for this repair order before work can
-              proceed.
+            <p className="mt-1 text-xs text-zinc-500">
+              Manage required parts from review through installation.
             </p>
           </div>
+
+          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+            {partLines.length}
+          </span>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <InfoCard
-            label="Current status"
-            value={formatLabel(repairOrder.status)}
+        {isLoadingPartLines ? (
+          <div className="grid min-h-40 place-items-center p-6 text-sm text-zinc-500">
+            Loading parts...
+          </div>
+        ) : isPartLinesError ? (
+          <div className="grid min-h-40 place-items-center p-6 text-sm text-red-600">
+            MotoDesk could not load repair-order parts.
+          </div>
+        ) : partLines.length === 0 ? (
+          <div className="grid min-h-40 place-items-center p-6 text-sm text-zinc-500">
+            No parts have been added.
+          </div>
+        ) : (
+          <RepairOrderPartLineList
+            organizationId={organizationId}
+            repairOrderId={repairOrder.id}
+            partLines={partLines}
           />
-
-          <InfoCard label="Vehicle" value={getVehicleName(repairOrder)} />
-        </div>
+        )}
       </section>
 
       {repairOrder.status === "PARTS_REVIEW" ? (
         <section className="rounded-xl border border-zinc-200 bg-white p-5">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">
-              Complete review
-            </h3>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Complete parts review
+          </h3>
 
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
-              When all required parts have been reviewed, complete the
-              parts-review stage. The server will determine the correct next
-              repair-order status.
-            </p>
-          </div>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            Complete the review once every required part has been resolved.
+            MotoDesk will determine whether the repair order is ready for work
+            or must wait on parts.
+          </p>
 
           <button
             type="button"
@@ -88,44 +116,7 @@ export function RepairOrderPartsTab({
             {isLoading ? "Completing..." : "Complete parts review"}
           </button>
         </section>
-      ) : (
-        <section className="rounded-xl border border-zinc-200 bg-white p-5">
-          <p className="text-xs text-zinc-500">
-            Parts review is not currently actionable for this repair-order
-            status.
-          </p>
-        </section>
-      )}
+      ) : null}
     </div>
   );
-}
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <article className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-        {label}
-      </p>
-
-      <p className="mt-2 text-sm font-semibold text-zinc-900">{value}</p>
-    </article>
-  );
-}
-
-function getVehicleName(repairOrder: RepairOrder): string {
-  return [
-    repairOrder.vehicle.year,
-    repairOrder.vehicle.make,
-    repairOrder.vehicle.model,
-    repairOrder.vehicle.trim,
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
-function formatLabel(value: string): string {
-  return value
-    .toLowerCase()
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

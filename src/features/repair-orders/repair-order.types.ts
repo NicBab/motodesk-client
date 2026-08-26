@@ -257,4 +257,19 @@ export type CloseRepairOrderInput =
     notes?: string;
   };
 
+  export type ReopenRepairOrderInput =
+  RepairOrderMutationInput & {
+    notes: string;
+  };
+
+  export type PauseRepairOrderInput =
+  RepairOrderMutationInput & {
+    notes: string;
+  };
+
+export type ResumeRepairOrderInput =
+  RepairOrderMutationInput & {
+    notes?: string;
+  };
+
 // //************************************************************** */

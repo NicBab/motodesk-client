@@ -12,11 +12,17 @@ import { RepairOrderCashierTab } from "./RepairOrderCashierTab";
 
 import { RepairOrderDialogShell } from "./RepairOrderDialogShell";
 
+import { RepairOrderLaborTab } from "./RepairOrderLaborTab";
+
 import { RepairOrderOverview } from "./RepairOrderOverview";
 
 import { RepairOrderPartsTab } from "./RepairOrderPartsTab";
 
 import { RepairOrderTabs, type RepairOrderTab } from "./RepairOrderTabs";
+
+import { RepairOrderActionsTab } from "./RepairOrderActionsTab";
+
+import { RepairOrderAdditionalWorkTab } from "./RepairOrderAdditionalWorkTab";
 
 type RepairOrderDialogProps = {
   organizationId: string;
@@ -77,10 +83,17 @@ export function RepairOrderDialog({
               />
             ) : null}
 
+            {activeTab === "actions" ? (
+              <RepairOrderActionsTab
+                organizationId={organizationId}
+                repairOrder={resolvedRepairOrder}
+              />
+            ) : null}
+
             {activeTab === "labor" ? (
-              <LifecyclePlaceholder
-                title="Labor"
-                description="Labor operations, technician assignments, and time tracking will appear here."
+              <RepairOrderLaborTab
+                organizationId={organizationId}
+                repairOrder={resolvedRepairOrder}
               />
             ) : null}
 
@@ -92,9 +105,9 @@ export function RepairOrderDialog({
             ) : null}
 
             {activeTab === "additional-work" ? (
-              <LifecyclePlaceholder
-                title="Additional Work"
-                description="Additional findings, recommendations, and supplemental work requests will appear here."
+              <RepairOrderAdditionalWorkTab
+                organizationId={organizationId}
+                repairOrder={resolvedRepairOrder}
               />
             ) : null}
 
