@@ -166,6 +166,10 @@ export type FailRepairOrderQualityCheckInput = RepairOrderMutationInput & {
   notes: string;
 };
 
+export type RepairOrderQualityCheckInput = RepairOrderMutationInput & {
+  notes?: string;
+};
+
 export type ApproveRepairOrderInput = RepairOrderMutationInput & {
   approvalMethod: RepairOrderApprovalMethod;
 
@@ -230,131 +234,27 @@ export type CreateRepairOrderInput = {
   pickupNotes?: string;
 };
 
-// export type RepairOrderStatus =
-//   | "ESTIMATE"
-//   | "AWAITING_CUSTOMER_APPROVAL"
-//   | "APPROVED"
-//   | "PARTS_REVIEW"
-//   | "WAITING_ON_PARTS"
-//   | "READY_TO_WORK"
-//   | "SCHEDULED"
-//   | "IN_PROGRESS"
-//   | "PAUSED"
-//   | "WAITING_ON_ADDITIONAL_APPROVAL"
-//   | "WORK_COMPLETE"
-//   | "QUALITY_CHECK"
-//   | "READY_FOR_PICKUP"
-//   | "CASHIERED"
-//   | "COMPLETED"
-//   | "PICKED_UP"
-//   | "CLOSED"
-//   | "CANCELLED";
+export type GetRepairOrderInput = {
+  organizationId: string;
+  repairOrderId: string;
+};
 
-// //************************************************************** */
+export type CashierRepairOrderInput =
+  RepairOrderMutationInput & {
+    paymentReference?: string;
+    paymentRemote?: boolean;
+    remainingBalance?: number;
+  };
 
-// export type RepairOrderPriority =
-//   | "STANDARD"
-//   | "RUSH"
-//   | "EMERGENCY"
-//   | "HOLD";
+export type CompleteRepairOrderPickupInput =
+  RepairOrderMutationInput & {
+    pickupRecipient?: string;
+    notes?: string;
+  };
 
-// //************************************************************** */
-
-// export type RepairOrderCustomer = {
-//   id: string;
-
-//   firstName: string | null;
-//   lastName: string | null;
-//   companyName: string | null;
-
-//   email: string | null;
-//   phone: string | null;
-// };
-
-// //************************************************************** */
-
-// export type RepairOrderVehicle = {
-//   id: string;
-
-//   year: number | null;
-
-//   make: string;
-//   model: string;
-//   trim: string | null;
-
-//   vin: string | null;
-// };
-
-// //************************************************************** */
-
-// export type RepairOrder = {
-//   id: string;
-//   organizationId: string;
-
-//   customerId: string;
-//   vehicleId: string;
-
-//   roNumber: number;
-
-//   status: RepairOrderStatus;
-//   priority: RepairOrderPriority;
-
-//   serviceAdvisorMembershipId:
-//     | string
-//     | null;
-
-//   primaryTechnicianMembershipId:
-//     | string
-//     | null;
-
-//   promisedDate: string | null;
-//   scheduledDate: string | null;
-
-//   complaint: string | null;
-//   notes: string | null;
-
-//   taxRate: string | null;
-//   shopSuppliesRate: string;
-
-//   discount: string;
-//   deposit: string;
-
-//   approvedAmount: string | null;
-
-//   cashierStatus: string;
-
-//   remainingBalance: string;
-
-//   pickupStatus: string;
-
-//   isActive: boolean;
-
-//   customer: RepairOrderCustomer;
-//   vehicle: RepairOrderVehicle;
-
-//   createdAt: string;
-//   updatedAt: string;
-// };
-
-// //************************************************************** */
-
-// export type RepairOrderListQuery = {
-//   organizationId: string;
-
-//   search?: string;
-
-//   customerId?: string;
-//   vehicleId?: string;
-
-//   status?: RepairOrderStatus;
-
-//   priority?: RepairOrderPriority;
-
-//   serviceAdvisorMembershipId?: string;
-
-//   primaryTechnicianMembershipId?: string;
-
-//   isActive?: boolean;
-// };
+export type CloseRepairOrderInput =
+  RepairOrderMutationInput & {
+    notes?: string;
+  };
 
 // //************************************************************** */

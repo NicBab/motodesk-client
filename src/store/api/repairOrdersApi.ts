@@ -7,6 +7,12 @@ import type {
   RepairOrderNotesMutationInput,
   UpdateRepairOrderStatusInput,
   CreateRepairOrderInput,
+  GetRepairOrderInput,
+  RepairOrderQualityCheckInput,
+  FailRepairOrderQualityCheckInput,
+  CashierRepairOrderInput,
+  CloseRepairOrderInput,
+  CompleteRepairOrderPickupInput,
 } from "@/features/repair-orders/repair-order.types";
 
 import { baseApi } from "./baseApi";
@@ -268,6 +274,161 @@ export const repairOrdersApi = baseApi.injectEndpoints({
         },
       ],
     }),
+    getRepairOrder: builder.query<RepairOrder, GetRepairOrderInput>({
+      query: ({ organizationId, repairOrderId }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}`,
+        method: "GET",
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      providesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+      ],
+    }),
+    passRepairOrderQualityCheck: builder.mutation<
+      RepairOrder,
+      RepairOrderQualityCheckInput
+    >({
+      query: ({ organizationId, repairOrderId, notes }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/quality-check/pass`,
+        method: "POST",
+        body: {
+          ...(notes !== undefined ? { notes } : {}),
+        },
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+        {
+          type: "RepairOrder",
+          id: "LIST",
+        },
+      ],
+    }),
+
+    failRepairOrderQualityCheck: builder.mutation<
+      RepairOrder,
+      FailRepairOrderQualityCheckInput
+    >({
+      query: ({ organizationId, repairOrderId, notes }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/quality-check/fail`,
+        method: "POST",
+        body: {
+          notes,
+        },
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+        {
+          type: "RepairOrder",
+          id: "LIST",
+        },
+      ],
+    }),
+    cashierRepairOrder: builder.mutation<RepairOrder, CashierRepairOrderInput>({
+      query: ({
+        organizationId,
+        repairOrderId,
+        paymentReference,
+        paymentRemote,
+        remainingBalance,
+      }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/cashier`,
+        method: "POST",
+        body: {
+          ...(paymentReference !== undefined ? { paymentReference } : {}),
+
+          ...(paymentRemote !== undefined ? { paymentRemote } : {}),
+
+          ...(remainingBalance !== undefined ? { remainingBalance } : {}),
+        },
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+        {
+          type: "RepairOrder",
+          id: "LIST",
+        },
+      ],
+    }),
+
+    completeRepairOrderPickup: builder.mutation<
+      RepairOrder,
+      CompleteRepairOrderPickupInput
+    >({
+      query: ({ organizationId, repairOrderId, pickupRecipient, notes }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/pickup`,
+        method: "POST",
+        body: {
+          ...(pickupRecipient !== undefined ? { pickupRecipient } : {}),
+
+          ...(notes !== undefined ? { notes } : {}),
+        },
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+        {
+          type: "RepairOrder",
+          id: "LIST",
+        },
+      ],
+    }),
+
+    closeRepairOrder: builder.mutation<RepairOrder, CloseRepairOrderInput>({
+      query: ({ organizationId, repairOrderId, notes }) => ({
+        url: `/organizations/${organizationId}/repair-orders/${repairOrderId}/close`,
+        method: "POST",
+        body: {
+          ...(notes !== undefined ? { notes } : {}),
+        },
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<RepairOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { repairOrderId }) => [
+        {
+          type: "RepairOrder",
+          id: repairOrderId,
+        },
+        {
+          type: "RepairOrder",
+          id: "LIST",
+        },
+      ],
+    }),
   }),
 });
 
@@ -279,4 +440,10 @@ export const {
   useApproveRepairOrderMutation,
   useDeclineRepairOrderApprovalMutation,
   useCompleteRepairOrderPartsReviewMutation,
+  useGetRepairOrderQuery,
+  usePassRepairOrderQualityCheckMutation,
+  useFailRepairOrderQualityCheckMutation,
+  useCashierRepairOrderMutation,
+  useCompleteRepairOrderPickupMutation,
+  useCloseRepairOrderMutation,
 } = repairOrdersApi;
