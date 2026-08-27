@@ -16,6 +16,7 @@ import type {
   ReopenRepairOrderInput,
   PauseRepairOrderInput,
 ResumeRepairOrderInput,
+UpdateRepairOrderInput,
 } from "@/features/repair-orders/repair-order.types";
 
 import type {
@@ -142,6 +143,40 @@ export const repairOrdersApi = baseApi.injectEndpoints({
         },
       ],
     }),
+
+    updateRepairOrder: builder.mutation<
+  RepairOrder,
+  UpdateRepairOrderInput
+>({
+  query: ({
+    organizationId,
+    repairOrderId,
+    data,
+  }) => ({
+    url: `/organizations/${organizationId}/repair-orders/${repairOrderId}`,
+    method: "PATCH",
+    body: data,
+  }),
+
+  transformResponse: (
+    response: ApiSuccessResponse<RepairOrder>,
+  ) => response.data,
+
+  invalidatesTags: (
+    _result,
+    _error,
+    { repairOrderId },
+  ) => [
+    {
+      type: "RepairOrder",
+      id: repairOrderId,
+    },
+    {
+      type: "RepairOrder",
+      id: "LIST",
+    },
+  ],
+}),
 
     updateRepairOrderStatus: builder.mutation<
       RepairOrder,
@@ -1131,6 +1166,7 @@ export const {
   useCloseRepairOrderMutation,
 
   useGetRepairOrderLaborLinesQuery,
+  useUpdateRepairOrderMutation,
   useCreateRepairOrderLaborLineMutation,
   useUpdateRepairOrderLaborLineMutation,
   useStartRepairOrderLaborLineMutation,

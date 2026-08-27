@@ -2,6 +2,7 @@
 
 type RepairOrderTab =
   | "overview"
+  | "estimate"
   | "actions"
   | "labor"
   | "parts"
@@ -11,7 +12,6 @@ type RepairOrderTab =
 
 type RepairOrderTabsProps = {
   activeTab: RepairOrderTab;
-
   onChange: (tab: RepairOrderTab) => void;
 };
 
@@ -22,6 +22,10 @@ const tabs: Array<{
   {
     id: "overview",
     label: "Overview",
+  },
+  {
+    id: "estimate",
+    label: "Estimate",
   },
   {
     id: "actions",

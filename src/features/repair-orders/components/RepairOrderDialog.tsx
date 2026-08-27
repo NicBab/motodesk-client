@@ -6,11 +6,17 @@ import { useGetRepairOrderQuery } from "@/store/api/repairOrdersApi";
 
 import type { RepairOrder } from "../repair-order.types";
 
+import { RepairOrderActionsTab } from "./RepairOrderActionsTab";
+
+import { RepairOrderAdditionalWorkTab } from "./RepairOrderAdditionalWorkTab";
+
 import { RepairOrderApprovalTab } from "./RepairOrderApprovalTab";
 
 import { RepairOrderCashierTab } from "./RepairOrderCashierTab";
 
 import { RepairOrderDialogShell } from "./RepairOrderDialogShell";
+
+import { RepairOrderEstimateTab } from "./RepairOrderEstimateTab";
 
 import { RepairOrderLaborTab } from "./RepairOrderLaborTab";
 
@@ -19,10 +25,6 @@ import { RepairOrderOverview } from "./RepairOrderOverview";
 import { RepairOrderPartsTab } from "./RepairOrderPartsTab";
 
 import { RepairOrderTabs, type RepairOrderTab } from "./RepairOrderTabs";
-
-import { RepairOrderActionsTab } from "./RepairOrderActionsTab";
-
-import { RepairOrderAdditionalWorkTab } from "./RepairOrderAdditionalWorkTab";
 
 type RepairOrderDialogProps = {
   organizationId: string;
@@ -83,6 +85,13 @@ export function RepairOrderDialog({
               />
             ) : null}
 
+            {activeTab === "estimate" ? (
+              <RepairOrderEstimateTab
+                organizationId={organizationId}
+                repairOrder={resolvedRepairOrder}
+              />
+            ) : null}
+
             {activeTab === "actions" ? (
               <RepairOrderActionsTab
                 organizationId={organizationId}
@@ -135,26 +144,6 @@ function DialogMessage({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-56 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-sm text-zinc-500">
       {children}
-    </div>
-  );
-}
-
-function LifecyclePlaceholder({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="grid min-h-56 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-center">
-      <div>
-        <p className="text-sm font-semibold text-zinc-700">{title}</p>
-
-        <p className="mt-1 max-w-sm text-xs leading-5 text-zinc-400">
-          {description}
-        </p>
-      </div>
     </div>
   );
 }

@@ -272,4 +272,52 @@ export type ResumeRepairOrderInput =
     notes?: string;
   };
 
+  export type UpdateRepairOrderInput =
+  RepairOrderMutationInput & {
+    data: {
+      priority?: RepairOrderPriority;
+
+      serviceAdvisorMembershipId?: string;
+      primaryTechnicianMembershipId?: string;
+
+      promisedDate?: string;
+      scheduledDate?: string;
+
+      complaint?: string;
+      notes?: string;
+
+      taxRate?: number;
+      shopSuppliesRate?: number;
+
+      discount?: number;
+      deposit?: number;
+
+      approvalMethod?:
+        RepairOrderApprovalMethod;
+
+      approvalDate?: string;
+
+      approvedBy?: string;
+      approvedAmount?: number;
+      approvalNotes?: string;
+
+      cashierStatus?:
+        RepairOrderCashierStatus;
+
+      cashieredDate?: string;
+
+      paymentReference?: string;
+      paymentRemote?: boolean;
+
+      remainingBalance?: number;
+
+      pickupStatus?:
+        RepairOrderPickupStatus;
+
+      pickupDate?: string;
+      pickupRecipient?: string;
+      pickupNotes?: string;
+    };
+  };
+
 // //************************************************************** */
