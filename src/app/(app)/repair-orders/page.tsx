@@ -51,9 +51,6 @@ export default function RepairOrdersPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
 
-  // const [selectedRepairOrder, setSelectedRepairOrder] =
-  //   useState<RepairOrder | null>(null);
-
   const {
     data: repairOrders = [],
     isLoading,
