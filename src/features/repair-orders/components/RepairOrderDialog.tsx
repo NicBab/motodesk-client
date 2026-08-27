@@ -1,30 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
-import { useGetRepairOrderQuery } from "@/store/api/repairOrdersApi";
+import {
+  useGetRepairOrderQuery,
+} from "@/store/api/repairOrdersApi";
 
-import type { RepairOrder } from "../repair-order.types";
+import type {
+  RepairOrder,
+} from "../repair-order.types";
 
-import { RepairOrderActionsTab } from "./RepairOrderActionsTab";
+import {
+  RepairOrderActionsTab,
+} from "./RepairOrderActionsTab";
 
-import { RepairOrderAdditionalWorkTab } from "./RepairOrderAdditionalWorkTab";
+import {
+  RepairOrderDialogShell,
+} from "./RepairOrderDialogShell";
 
-import { RepairOrderApprovalTab } from "./RepairOrderApprovalTab";
+import {
+  RepairOrderEstimateTab,
+} from "./RepairOrderEstimateTab";
 
-import { RepairOrderCashierTab } from "./RepairOrderCashierTab";
+import {
+  RepairOrderHistoryTab,
+} from "./RepairOrderHistoryTab";
 
-import { RepairOrderDialogShell } from "./RepairOrderDialogShell";
+import {
+  RepairOrderLaborTab,
+} from "./RepairOrderLaborTab";
 
-import { RepairOrderEstimateTab } from "./RepairOrderEstimateTab";
+import {
+  RepairOrderPartsTab,
+} from "./RepairOrderPartsTab";
 
-import { RepairOrderLaborTab } from "./RepairOrderLaborTab";
+import {
+  RepairOrderStatusTab,
+} from "./RepairOrderStatusTab";
 
-import { RepairOrderOverview } from "./RepairOrderOverview";
-
-import { RepairOrderPartsTab } from "./RepairOrderPartsTab";
-
-import { RepairOrderTabs, type RepairOrderTab } from "./RepairOrderTabs";
+import {
+  RepairOrderTabs,
+  type RepairOrderTab,
+} from "./RepairOrderTabs";
 
 type RepairOrderDialogProps = {
   organizationId: string;
@@ -39,7 +58,13 @@ export function RepairOrderDialog({
   open,
   onClose,
 }: RepairOrderDialogProps) {
-  const [activeTab, setActiveTab] = useState<RepairOrderTab>("overview");
+  const [
+    activeTab,
+    setActiveTab,
+  ] =
+    useState<RepairOrderTab>(
+      "estimate",
+    );
 
   const {
     data: currentRepairOrder,
@@ -48,10 +73,14 @@ export function RepairOrderDialog({
   } = useGetRepairOrderQuery(
     {
       organizationId,
-      repairOrderId: repairOrder?.id ?? "",
+      repairOrderId:
+        repairOrder?.id ?? "",
     },
     {
-      skip: !open || !repairOrder || !organizationId,
+      skip:
+        !open ||
+        !repairOrder ||
+        !organizationId,
     },
   );
 
@@ -59,78 +88,106 @@ export function RepairOrderDialog({
     return null;
   }
 
-  const resolvedRepairOrder = currentRepairOrder ?? repairOrder;
+  const resolvedRepairOrder =
+    currentRepairOrder ??
+    repairOrder;
 
   return (
     <RepairOrderDialogShell
       title={`RO #${resolvedRepairOrder.roNumber}`}
-      description="Manage the complete repair order lifecycle from estimate through cashiering and pickup."
+      description={`${getCustomerName(
+        resolvedRepairOrder,
+      )} · ${getVehicleName(
+        resolvedRepairOrder,
+      )}`}
       onClose={onClose}
     >
-      <RepairOrderTabs activeTab={activeTab} onChange={setActiveTab} />
+      <RepairOrderTabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
 
       <div className="pt-6">
-        {isLoading && !currentRepairOrder ? (
-          <DialogMessage>Loading repair order...</DialogMessage>
+        {isLoading &&
+        !currentRepairOrder ? (
+          <DialogMessage>
+            Loading repair order...
+          </DialogMessage>
         ) : isError ? (
           <DialogMessage>
-            MotoDesk could not load the current repair order.
+            MotoDesk could not load the
+            current repair order.
           </DialogMessage>
         ) : (
           <>
-            {activeTab === "overview" ? (
-              <RepairOrderOverview
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
-              />
-            ) : null}
-
-            {activeTab === "estimate" ? (
+            {activeTab ===
+            "estimate" ? (
               <RepairOrderEstimateTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+                organizationId={
+                  organizationId
+                }
+                repairOrder={
+                  resolvedRepairOrder
+                }
+                onOpenActions={() =>
+                  setActiveTab(
+                    "actions",
+                  )
+                }
               />
             ) : null}
 
-            {activeTab === "actions" ? (
+            {activeTab ===
+            "actions" ? (
               <RepairOrderActionsTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+                organizationId={
+                  organizationId
+                }
+                repairOrder={
+                  resolvedRepairOrder
+                }
               />
             ) : null}
 
-            {activeTab === "labor" ? (
+            {activeTab ===
+            "labor" ? (
               <RepairOrderLaborTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+                organizationId={
+                  organizationId
+                }
+                repairOrder={
+                  resolvedRepairOrder
+                }
               />
             ) : null}
 
-            {activeTab === "parts" ? (
+            {activeTab ===
+            "parts" ? (
               <RepairOrderPartsTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+                organizationId={
+                  organizationId
+                }
+                repairOrder={
+                  resolvedRepairOrder
+                }
               />
             ) : null}
 
-            {activeTab === "additional-work" ? (
-              <RepairOrderAdditionalWorkTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+            {activeTab ===
+            "status" ? (
+              <RepairOrderStatusTab
+                repairOrder={
+                  resolvedRepairOrder
+                }
               />
             ) : null}
 
-            {activeTab === "approval" ? (
-              <RepairOrderApprovalTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
-              />
-            ) : null}
-
-            {activeTab === "cashier" ? (
-              <RepairOrderCashierTab
-                organizationId={organizationId}
-                repairOrder={resolvedRepairOrder}
+            {activeTab ===
+            "history" ? (
+              <RepairOrderHistoryTab
+                repairOrder={
+                  resolvedRepairOrder
+                }
               />
             ) : null}
           </>
@@ -140,10 +197,48 @@ export function RepairOrderDialog({
   );
 }
 
-function DialogMessage({ children }: { children: React.ReactNode }) {
+function DialogMessage({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid min-h-56 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-sm text-zinc-500">
       {children}
     </div>
   );
+}
+
+function getCustomerName(
+  repairOrder: RepairOrder,
+): string {
+  if (
+    repairOrder.customer.companyName
+  ) {
+    return repairOrder.customer
+      .companyName;
+  }
+
+  return (
+    [
+      repairOrder.customer.firstName,
+      repairOrder.customer.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") ||
+    "Unnamed customer"
+  );
+}
+
+function getVehicleName(
+  repairOrder: RepairOrder,
+): string {
+  return [
+    repairOrder.vehicle.year,
+    repairOrder.vehicle.make,
+    repairOrder.vehicle.model,
+    repairOrder.vehicle.trim,
+  ]
+    .filter(Boolean)
+    .join(" ");
 }

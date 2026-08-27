@@ -4,6 +4,8 @@ import { Plus, Search } from "lucide-react";
 
 import { useState } from "react";
 
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { CreateRepairOrderDialog } from "@/features/repair-orders/components/CreateRepairOrderDialog";
 
 import { RepairOrderDialog } from "@/features/repair-orders/components/RepairOrderDialog";
@@ -15,6 +17,8 @@ import {
   RepairOrderTableHeading,
   RepairOrderTableMessage,
 } from "@/features/repair-orders/components/RepairOrderTableState";
+
+import { useOpenRepairOrders } from "@/features/repair-orders/open-repair-orders.context";
 
 import type {
   RepairOrder,
@@ -31,6 +35,12 @@ import { selectActiveOrganizationId } from "@/store/slices/workspaceSlice";
 export default function RepairOrdersPage() {
   const organizationId = useAppSelector(selectActiveOrganizationId);
 
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const { openRepairOrder } = useOpenRepairOrders();
+
   const [search, setSearch] = useState("");
 
   const [statusFilter, setStatusFilter] = useState<"" | RepairOrderStatus>("");
@@ -41,8 +51,8 @@ export default function RepairOrdersPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
 
-  const [selectedRepairOrder, setSelectedRepairOrder] =
-    useState<RepairOrder | null>(null);
+  // const [selectedRepairOrder, setSelectedRepairOrder] =
+  //   useState<RepairOrder | null>(null);
 
   const {
     data: repairOrders = [],
@@ -65,6 +75,28 @@ export default function RepairOrdersPage() {
       skip: !organizationId,
     },
   );
+
+  const requestedRepairOrderId = searchParams.get("ro");
+
+  const selectedRepairOrder = requestedRepairOrderId
+    ? (repairOrders.find(
+        (repairOrder) => repairOrder.id === requestedRepairOrderId,
+      ) ?? null)
+    : null;
+
+  function handleOpenRepairOrder(repairOrder: RepairOrder) {
+    openRepairOrder({
+      id: repairOrder.id,
+      roNumber: repairOrder.roNumber,
+      customerName: getCustomerName(repairOrder),
+    });
+
+    router.push(`/repair-orders?ro=${repairOrder.id}`);
+  }
+
+  function handleCloseRepairOrder() {
+    router.push("/repair-orders");
+  }
 
   return (
     <div className="space-y-6">
@@ -212,7 +244,7 @@ export default function RepairOrdersPage() {
                     <RepairOrderRow
                       key={repairOrder.id}
                       repairOrder={repairOrder}
-                      onOpen={setSelectedRepairOrder}
+                      onOpen={handleOpenRepairOrder}
                     />
                   ))}
                 </tbody>
@@ -245,10 +277,22 @@ export default function RepairOrdersPage() {
             organizationId={organizationId}
             repairOrder={selectedRepairOrder}
             open={selectedRepairOrder !== null}
-            onClose={() => setSelectedRepairOrder(null)}
+            onClose={handleCloseRepairOrder}
           />
         </>
       ) : null}
     </div>
   );
+}
+
+function getCustomerName(repairOrder: RepairOrder): string {
+  if (repairOrder.customer.companyName) {
+    return repairOrder.customer.companyName;
+  }
+
+  const name = [repairOrder.customer.firstName, repairOrder.customer.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  return name || "Unnamed customer";
 }

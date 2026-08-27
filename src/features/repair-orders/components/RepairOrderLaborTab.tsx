@@ -10,9 +10,13 @@ import {
   X,
 } from "lucide-react";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
-import { toast } from "sonner";
+import {
+  toast,
+} from "sonner";
 
 import {
   useCompleteRepairOrderLaborLineMutation,
@@ -22,11 +26,17 @@ import {
   useUpdateRepairOrderLaborLineMutation,
 } from "@/store/api/repairOrdersApi";
 
-import type { RepairOrderLaborLine } from "../repair-order-labor.types";
+import type {
+  RepairOrderLaborLine,
+} from "../repair-order-labor.types";
 
-import type { RepairOrder } from "../repair-order.types";
+import type {
+  RepairOrder,
+} from "../repair-order.types";
 
-import { RepairOrderTechnicianSelect } from "./RepairOrderTechnicianSelect";
+import {
+  RepairOrderTechnicianSelect,
+} from "./RepairOrderTechnicianSelect";
 
 type RepairOrderLaborTabProps = {
   organizationId: string;
@@ -37,75 +47,145 @@ export function RepairOrderLaborTab({
   organizationId,
   repairOrder,
 }: RepairOrderLaborTabProps) {
-  const [description, setDescription] = useState("");
+  const [
+    description,
+    setDescription,
+  ] = useState("");
 
-  const [technicianMembershipId, setTechnicianMembershipId] = useState("");
+  const [
+    technicianMembershipId,
+    setTechnicianMembershipId,
+  ] = useState("");
 
-  const [hours, setHours] = useState("");
+  const [
+    hours,
+    setHours,
+  ] = useState("");
 
-  const [rate, setRate] = useState("");
+  const [
+    rate,
+    setRate,
+  ] = useState("");
 
-  const [editingLaborLineId, setEditingLaborLineId] = useState<string | null>(
-    null,
-  );
+  const [
+    editingLaborLineId,
+    setEditingLaborLineId,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
-  const [editDescription, setEditDescription] = useState("");
+  const [
+    editDescription,
+    setEditDescription,
+  ] = useState("");
 
-  const [editHours, setEditHours] = useState("");
+  const [
+    editTechnicianMembershipId,
+    setEditTechnicianMembershipId,
+  ] = useState("");
 
-  const [editRate, setEditRate] = useState("");
+  const [
+    editHours,
+    setEditHours,
+  ] = useState("");
 
-  const [editTechnicianMembershipId, setEditTechnicianMembershipId] =
-    useState("");
+  const [
+    editRate,
+    setEditRate,
+  ] = useState("");
 
   const {
     data: laborLines = [],
     isLoading,
     isError,
-  } = useGetRepairOrderLaborLinesQuery({
-    organizationId,
-    repairOrderId: repairOrder.id,
-  });
+  } =
+    useGetRepairOrderLaborLinesQuery({
+      organizationId,
+      repairOrderId:
+        repairOrder.id,
+    });
 
-  const [createLaborLine, { isLoading: isCreating }] =
+  const [
+    createLaborLine,
+    {
+      isLoading:
+        isCreating,
+    },
+  ] =
     useCreateRepairOrderLaborLineMutation();
 
-  const [updateLaborLine, { isLoading: isUpdating }] =
+  const [
+    updateLaborLine,
+    {
+      isLoading:
+        isUpdating,
+    },
+  ] =
     useUpdateRepairOrderLaborLineMutation();
 
-  const [deleteLaborLine, { isLoading: isDeleting }] =
+  const [
+    deleteLaborLine,
+    {
+      isLoading:
+        isDeleting,
+    },
+  ] =
     useDeleteRepairOrderLaborLineMutation();
 
-  const [completeLaborLine, { isLoading: isCompleting }] =
+  const [
+    completeLaborLine,
+    {
+      isLoading:
+        isCompleting,
+    },
+  ] =
     useCompleteRepairOrderLaborLineMutation();
 
-  const actionDisabled = isCreating || isUpdating || isDeleting || isCompleting;
+  const actionDisabled =
+    isCreating ||
+    isUpdating ||
+    isDeleting ||
+    isCompleting;
 
-  const incompleteLaborLines = laborLines.filter(
-    (laborLine) => !laborLine.completed && laborLine.status !== "CANCELLED",
-  );
+  const incompleteLaborLines =
+    laborLines.filter(
+      (line) =>
+        !line.completed &&
+        line.status !==
+          "CANCELLED",
+    );
 
   async function handleCreate() {
-    const trimmedDescription = description.trim();
+    const trimmed =
+      description.trim();
 
-    if (!trimmedDescription) {
-      toast.error("Enter a labor description.");
+    if (!trimmed) {
+      toast.error(
+        "Enter a labor description.",
+      );
 
       return;
     }
 
-    const parsedHours = parseOptionalNumber(hours);
+    const parsedHours =
+      parseOptionalNumber(hours);
 
-    const parsedRate = parseOptionalNumber(rate);
+    const parsedRate =
+      parseOptionalNumber(rate);
 
     if (parsedHours === null) {
-      toast.error("Enter valid labor hours.");
+      toast.error(
+        "Enter valid labor hours.",
+      );
 
       return;
     }
 
     if (parsedRate === null) {
-      toast.error("Enter a valid labor rate.");
+      toast.error(
+        "Enter a valid labor rate.",
+      );
 
       return;
     }
@@ -113,68 +193,105 @@ export function RepairOrderLaborTab({
     try {
       await createLaborLine({
         organizationId,
-        repairOrderId: repairOrder.id,
-
-        description: trimmedDescription,
-
-        technicianMembershipId: technicianMembershipId || undefined,
-
+        repairOrderId:
+          repairOrder.id,
+        description: trimmed,
+        technicianMembershipId:
+          technicianMembershipId ||
+          undefined,
         hours: parsedHours,
         rate: parsedRate,
       }).unwrap();
 
       setDescription("");
-      setTechnicianMembershipId("");
+      setTechnicianMembershipId(
+        "",
+      );
       setHours("");
       setRate("");
 
-      toast.success("Labor line added.");
+      toast.success(
+        "Labor line added.",
+      );
     } catch {
-      toast.error("MotoDesk could not add the labor line.");
+      toast.error(
+        "MotoDesk could not add the labor line.",
+      );
     }
   }
 
-  function handleBeginEdit(laborLine: RepairOrderLaborLine) {
-    setEditingLaborLineId(laborLine.id);
+  function handleBeginEdit(
+    laborLine:
+      RepairOrderLaborLine,
+  ) {
+    setEditingLaborLineId(
+      laborLine.id,
+    );
 
-    setEditDescription(laborLine.description);
+    setEditDescription(
+      laborLine.description,
+    );
 
-    setEditHours(laborLine.hours);
+    setEditTechnicianMembershipId(
+      laborLine.technicianMembershipId ??
+        "",
+    );
 
-    setEditRate(laborLine.rate);
+    setEditHours(
+      laborLine.hours,
+    );
 
-    setEditTechnicianMembershipId(laborLine.technicianMembershipId ?? "");
+    setEditRate(
+      laborLine.rate,
+    );
   }
 
   function handleCancelEdit() {
     setEditingLaborLineId(null);
     setEditDescription("");
+    setEditTechnicianMembershipId(
+      "",
+    );
     setEditHours("");
     setEditRate("");
-    setEditTechnicianMembershipId("");
   }
 
-  async function handleSaveEdit(laborLineId: string) {
-    const trimmedDescription = editDescription.trim();
+  async function handleSaveEdit(
+    laborLineId: string,
+  ) {
+    const trimmed =
+      editDescription.trim();
 
-    if (!trimmedDescription) {
-      toast.error("Enter a labor description.");
+    if (!trimmed) {
+      toast.error(
+        "Enter a labor description.",
+      );
 
       return;
     }
 
-    const parsedHours = parseOptionalNumber(editHours);
+    const parsedHours =
+      parseOptionalNumber(
+        editHours,
+      );
 
-    const parsedRate = parseOptionalNumber(editRate);
+    const parsedRate =
+      parseOptionalNumber(
+        editRate,
+      );
 
     if (parsedHours === null) {
-      toast.error("Enter valid labor hours.");
+      toast.error(
+        "Enter valid labor hours.",
+      );
 
       return;
     }
 
     if (parsedRate === null) {
-      toast.error("Enter a valid labor rate.");
+      toast.error(
+        "Enter a valid labor rate.",
+      );
 
       return;
     }
@@ -182,32 +299,39 @@ export function RepairOrderLaborTab({
     try {
       await updateLaborLine({
         organizationId,
-        repairOrderId: repairOrder.id,
+        repairOrderId:
+          repairOrder.id,
         laborLineId,
-
         data: {
-          description: trimmedDescription,
-
+          description: trimmed,
+          technicianMembershipId:
+            editTechnicianMembershipId ||
+            undefined,
           hours: parsedHours,
-
           rate: parsedRate,
-
-          technicianMembershipId: editTechnicianMembershipId || undefined,
         },
       }).unwrap();
 
       handleCancelEdit();
 
-      toast.success("Labor line updated.");
+      toast.success(
+        "Labor line updated.",
+      );
     } catch {
-      toast.error("MotoDesk could not update the labor line.");
+      toast.error(
+        "MotoDesk could not update the labor line.",
+      );
     }
   }
 
-  async function handleDelete(laborLine: RepairOrderLaborLine) {
-    const confirmed = window.confirm(
-      `Remove "${laborLine.description}" from this repair order?`,
-    );
+  async function handleDelete(
+    laborLine:
+      RepairOrderLaborLine,
+  ) {
+    const confirmed =
+      window.confirm(
+        `Remove "${laborLine.description}" from this repair order?`,
+      );
 
     if (!confirmed) {
       return;
@@ -216,126 +340,140 @@ export function RepairOrderLaborTab({
     try {
       await deleteLaborLine({
         organizationId,
-        repairOrderId: repairOrder.id,
-        laborLineId: laborLine.id,
+        repairOrderId:
+          repairOrder.id,
+        laborLineId:
+          laborLine.id,
       }).unwrap();
 
-      if (editingLaborLineId === laborLine.id) {
-        handleCancelEdit();
-      }
-
-      toast.success("Labor line removed.");
+      toast.success(
+        "Labor line removed.",
+      );
     } catch {
-      toast.error("MotoDesk could not remove the labor line.");
+      toast.error(
+        "MotoDesk could not remove the labor line.",
+      );
     }
   }
 
-  async function handleComplete(laborLineId: string) {
-    if (repairOrder.status !== "IN_PROGRESS") {
-      toast.error("Start the repair order before completing labor.");
-
-      return;
-    }
-
+  async function handleComplete(
+    laborLineId: string,
+  ) {
     try {
       await completeLaborLine({
         organizationId,
-        repairOrderId: repairOrder.id,
+        repairOrderId:
+          repairOrder.id,
         laborLineId,
       }).unwrap();
 
-      toast.success("Labor operation completed.");
+      toast.success(
+        "Labor operation completed.",
+      );
     } catch {
-      toast.error("MotoDesk could not complete the labor operation.");
+      toast.error(
+        "MotoDesk could not complete the labor operation.",
+      );
     }
   }
 
   async function handleCompleteAll() {
-    if (repairOrder.status !== "IN_PROGRESS") {
-      toast.error("Start the repair order before completing labor.");
-
-      return;
-    }
-
-    if (incompleteLaborLines.length === 0) {
-      toast.success("All labor operations are already complete.");
-
-      return;
-    }
-
     try {
-      for (const laborLine of incompleteLaborLines) {
+      for (
+        const laborLine of
+        incompleteLaborLines
+      ) {
         await completeLaborLine({
           organizationId,
-          repairOrderId: repairOrder.id,
-          laborLineId: laborLine.id,
+          repairOrderId:
+            repairOrder.id,
+          laborLineId:
+            laborLine.id,
         }).unwrap();
       }
 
-      toast.success("All labor operations completed.");
+      toast.success(
+        "All labor operations completed.",
+      );
     } catch {
-      toast.error("MotoDesk could not complete all labor operations.");
+      toast.error(
+        "MotoDesk could not complete all labor operations.",
+      );
     }
   }
 
   return (
     <div className="space-y-5">
       <section className="rounded-xl border border-zinc-200 bg-white p-5">
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-orange-50 text-orange-600">
-            <Wrench className="h-5 w-5" />
-          </div>
+        <div className="flex items-center gap-2">
+          <Wrench className="h-4 w-4 text-orange-500" />
 
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Add labor</h3>
-
-            <p className="mt-1 text-xs leading-5 text-zinc-500">
-              Add a labor operation and optionally assign a technician.
-            </p>
-          </div>
+          <h3 className="text-sm font-semibold text-zinc-900">
+            Add labor
+          </h3>
         </div>
 
-        <div className="mt-5 space-y-4">
-          <label className="block">
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px_120px_140px_auto] lg:items-end">
+          <label>
             <span className="mb-2 block text-xs font-semibold text-zinc-700">
               Description
             </span>
 
             <input
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Example: Replace front brake pads"
-              className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+              onChange={(event) =>
+                setDescription(
+                  event.target.value,
+                )
+              }
+              className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-orange-500"
             />
           </label>
 
           <RepairOrderTechnicianSelect
-            organizationId={organizationId}
-            value={technicianMembershipId}
-            onChange={setTechnicianMembershipId}
-            disabled={actionDisabled}
+            organizationId={
+              organizationId
+            }
+            value={
+              technicianMembershipId
+            }
+            onChange={
+              setTechnicianMembershipId
+            }
+            disabled={
+              actionDisabled
+            }
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <LaborNumberInput label="Hours" value={hours} onChange={setHours} />
+          <LaborNumberInput
+            label="Hours"
+            value={hours}
+            onChange={setHours}
+          />
 
-            <LaborNumberInput label="Rate" value={rate} onChange={setRate} />
-          </div>
+          <LaborNumberInput
+            label="Rate"
+            value={rate}
+            onChange={setRate}
+          />
 
           <button
             type="button"
-            disabled={actionDisabled}
-            onClick={() => void handleCreate()}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={
+              actionDisabled
+            }
+            onClick={() =>
+              void handleCreate()
+            }
+            className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 placeholder:text-zinc-400"
           >
             <Plus className="h-4 w-4" />
-
-            {isCreating ? "Adding..." : "Add labor"}
+            Add
           </button>
         </div>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white">
+      <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
         <div className="flex items-center justify-between gap-4 border-b border-zinc-200 px-5 py-4">
           <div>
             <h3 className="text-sm font-semibold text-zinc-900">
@@ -343,18 +481,24 @@ export function RepairOrderLaborTab({
             </h3>
 
             <p className="mt-1 text-xs text-zinc-500">
-              Manage labor operations and mark work complete as each operation
-              is finished.
+              {laborLines.length} operation
+              {laborLines.length === 1
+                ? ""
+                : "s"}
             </p>
           </div>
 
-          {repairOrder.status === "IN_PROGRESS" &&
-          incompleteLaborLines.length > 0 ? (
+          {incompleteLaborLines.length >
+          0 ? (
             <button
               type="button"
-              disabled={actionDisabled}
-              onClick={() => void handleCompleteAll()}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={
+                actionDisabled
+              }
+              onClick={() =>
+                void handleCompleteAll()
+              }
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-emerald-200 px-3 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
             >
               <CheckCircle2 className="h-4 w-4" />
               Complete all
@@ -363,155 +507,304 @@ export function RepairOrderLaborTab({
         </div>
 
         {isLoading ? (
-          <LaborMessage>Loading labor...</LaborMessage>
+          <TableMessage>
+            Loading labor...
+          </TableMessage>
         ) : isError ? (
-          <LaborMessage>MotoDesk could not load labor.</LaborMessage>
-        ) : laborLines.length === 0 ? (
-          <LaborMessage>No labor lines have been added.</LaborMessage>
+          <TableMessage>
+            MotoDesk could not load labor.
+          </TableMessage>
+        ) : laborLines.length ===
+          0 ? (
+          <TableMessage>
+            No labor operations.
+          </TableMessage>
         ) : (
-          <div className="divide-y divide-zinc-100">
-            {laborLines.map((laborLine) => {
-              const isEditing = editingLaborLineId === laborLine.id;
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[980px]">
+              <thead>
+                <tr className="border-b border-zinc-200 bg-zinc-50">
+                  <TableHeading>
+                    Operation
+                  </TableHeading>
 
-              return (
-                <div key={laborLine.id} className="px-5 py-4">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <input
-                        value={editDescription}
-                        onChange={(event) =>
-                          setEditDescription(event.target.value)
+                  <TableHeading>
+                    Technician
+                  </TableHeading>
+
+                  <TableHeading align="right">
+                    Hours
+                  </TableHeading>
+
+                  <TableHeading align="right">
+                    Rate
+                  </TableHeading>
+
+                  <TableHeading align="right">
+                    Total
+                  </TableHeading>
+
+                  <TableHeading>
+                    Status
+                  </TableHeading>
+
+                  <TableHeading>
+                    Actual
+                  </TableHeading>
+
+                  <TableHeading align="right">
+                    Actions
+                  </TableHeading>
+                </tr>
+              </thead>
+
+              <tbody>
+                {laborLines.map(
+                  (laborLine) => {
+                    const editing =
+                      editingLaborLineId ===
+                      laborLine.id;
+
+                    return (
+                      <tr
+                        key={
+                          laborLine.id
                         }
-                        className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
-                      />
+                        className="border-b border-zinc-100 last:border-b-0"
+                      >
+                        <td className="px-4 py-3">
+                          {editing ? (
+                            <input
+                              value={
+                                editDescription
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setEditDescription(
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="h-9 w-full rounded-md border border-zinc-300 px-2 text-sm"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-zinc-900">
+                              {
+                                laborLine.description
+                              }
+                            </span>
+                          )}
+                        </td>
 
-                      <RepairOrderTechnicianSelect
-                        organizationId={organizationId}
-                        value={editTechnicianMembershipId}
-                        onChange={setEditTechnicianMembershipId}
-                        disabled={actionDisabled}
-                      />
+                        <td className="px-4 py-3">
+                          {editing ? (
+                            <RepairOrderTechnicianSelect
+                              organizationId={
+                                organizationId
+                              }
+                              value={
+                                editTechnicianMembershipId
+                              }
+                              onChange={
+                                setEditTechnicianMembershipId
+                              }
+                              disabled={
+                                actionDisabled
+                              }
+                            />
+                          ) : (
+                            <span className="text-sm text-zinc-600">
+                              {laborLine.technician
+                                ? getMembershipName(
+                                    laborLine
+                                      .technician
+                                      .user,
+                                  )
+                                : "Unassigned"}
+                            </span>
+                          )}
+                        </td>
 
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <LaborNumberInput
-                          label="Hours"
-                          value={editHours}
-                          onChange={setEditHours}
-                        />
+                        <td className="px-4 py-3 text-right">
+                          {editing ? (
+                            <input
+                              value={
+                                editHours
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setEditHours(
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              type="number"
+                              className="h-9 w-20 rounded-md border border-zinc-300 px-2 text-right text-sm"
+                            />
+                          ) : (
+                            <span className="text-sm text-zinc-600">
+                              {
+                                laborLine.hours
+                              }
+                            </span>
+                          )}
+                        </td>
 
-                        <LaborNumberInput
-                          label="Rate"
-                          value={editRate}
-                          onChange={setEditRate}
-                        />
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          disabled={actionDisabled}
-                          onClick={() => void handleSaveEdit(laborLine.id)}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 disabled:opacity-50"
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          Save
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={actionDisabled}
-                          onClick={handleCancelEdit}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 text-xs font-semibold text-zinc-600 disabled:opacity-50"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-zinc-900">
-                          {laborLine.description}
-                        </p>
-
-                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
-                          <span>Hours: {laborLine.hours}</span>
-
-                          <span>Rate: {formatCurrency(laborLine.rate)}</span>
-
-                          <span>Status: {formatLabel(laborLine.status)}</span>
-
-                          {laborLine.startedAt ? (
-                            <span>
-                              Actual:{" "}
-                              {formatElapsedTime(
-                                laborLine.startedAt,
-                                laborLine.completedAt,
+                        <td className="px-4 py-3 text-right">
+                          {editing ? (
+                            <input
+                              value={
+                                editRate
+                              }
+                              onChange={(
+                                event,
+                              ) =>
+                                setEditRate(
+                                  event
+                                    .target
+                                    .value,
+                                )
+                              }
+                              type="number"
+                              className="h-9 w-24 rounded-md border border-zinc-300 px-2 text-right text-sm"
+                            />
+                          ) : (
+                            <span className="text-sm text-zinc-600">
+                              {formatCurrency(
+                                Number(
+                                  laborLine.rate,
+                                ),
                               )}
                             </span>
-                          ) : null}
-                        </div>
+                          )}
+                        </td>
 
-                        <p className="mt-1 text-xs text-zinc-400">
-                          Technician:{" "}
-                          {laborLine.technician
-                            ? getMembershipName(laborLine.technician.user)
-                            : "Unassigned"}
-                        </p>
-                      </div>
+                        <td className="px-4 py-3 text-right text-sm font-semibold text-zinc-900">
+                          {formatCurrency(
+                            Number(
+                              laborLine.hours,
+                            ) *
+                              Number(
+                                laborLine.rate,
+                              ),
+                          )}
+                        </td>
 
-                      <div className="flex flex-wrap gap-2">
-                        {!laborLine.completed ? (
-                          <button
-                            type="button"
-                            disabled={actionDisabled}
-                            onClick={() => handleBeginEdit(laborLine)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-50 disabled:opacity-50"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Edit
-                          </button>
-                        ) : null}
+                        <td className="px-4 py-3">
+                          <StatusBadge
+                            status={
+                              laborLine.status
+                            }
+                          />
+                        </td>
 
-                        {!laborLine.completed &&
-                        laborLine.status !== "CANCELLED" &&
-                        repairOrder.status === "IN_PROGRESS" ? (
-                          <button
-                            type="button"
-                            disabled={actionDisabled}
-                            onClick={() => void handleComplete(laborLine.id)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-emerald-200 px-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Complete
-                          </button>
-                        ) : null}
+                        <td className="px-4 py-3 text-sm text-zinc-500">
+                          {laborLine.startedAt
+                            ? formatElapsedTime(
+                                laborLine.startedAt,
+                                laborLine.completedAt,
+                              )
+                            : "—"}
+                        </td>
 
-                        {laborLine.completed ? (
-                          <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Completed
-                          </span>
-                        ) : null}
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            {editing ? (
+                              <>
+                                <SmallButton
+                                  icon={
+                                    Check
+                                  }
+                                  label="Save"
+                                  onClick={() =>
+                                    void handleSaveEdit(
+                                      laborLine.id,
+                                    )
+                                  }
+                                  disabled={
+                                    actionDisabled
+                                  }
+                                />
 
-                        {!laborLine.completed ? (
-                          <button
-                            type="button"
-                            disabled={actionDisabled}
-                            onClick={() => void handleDelete(laborLine)}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 text-xs font-semibold text-zinc-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Remove
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                                <SmallButton
+                                  icon={X}
+                                  label="Cancel"
+                                  onClick={
+                                    handleCancelEdit
+                                  }
+                                  disabled={
+                                    actionDisabled
+                                  }
+                                />
+                              </>
+                            ) : (
+                              <>
+                                {!laborLine.completed ? (
+                                  <SmallButton
+                                    icon={
+                                      Pencil
+                                    }
+                                    label="Edit"
+                                    onClick={() =>
+                                      handleBeginEdit(
+                                        laborLine,
+                                      )
+                                    }
+                                    disabled={
+                                      actionDisabled
+                                    }
+                                  />
+                                ) : null}
+
+                                {!laborLine.completed &&
+                                laborLine.status !==
+                                  "CANCELLED" ? (
+                                  <SmallButton
+                                    icon={
+                                      CheckCircle2
+                                    }
+                                    label="Complete"
+                                    onClick={() =>
+                                      void handleComplete(
+                                        laborLine.id,
+                                      )
+                                    }
+                                    disabled={
+                                      actionDisabled
+                                    }
+                                  />
+                                ) : null}
+
+                                {!laborLine.completed ? (
+                                  <SmallButton
+                                    icon={
+                                      Trash2
+                                    }
+                                    label="Remove"
+                                    onClick={() =>
+                                      void handleDelete(
+                                        laborLine,
+                                      )
+                                    }
+                                    disabled={
+                                      actionDisabled
+                                    }
+                                  />
+                                ) : null}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
+              </tbody>
+            </table>
           </div>
         )}
       </section>
@@ -519,100 +812,196 @@ export function RepairOrderLaborTab({
   );
 }
 
-type LaborNumberInputProps = {
+function LaborNumberInput({
+  label,
+  value,
+  onChange,
+}: {
   label: string;
   value: string;
-
-  onChange: (value: string) => void;
-};
-
-function LaborNumberInput({ label, value, onChange }: LaborNumberInputProps) {
+  onChange: (
+    value: string,
+  ) => void;
+}) {
   return (
-    <label className="block">
+    <label>
       <span className="mb-2 block text-xs font-semibold text-zinc-700">
         {label}
       </span>
 
       <input
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) =>
+          onChange(event.target.value)
+        }
         type="number"
-        step="0.01"
         min="0"
-        placeholder="Optional"
-        className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10"
+        step="0.01"
+        className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-900 caret-zinc-900 outline-none focus:border-orange-500"
       />
     </label>
   );
 }
 
-function LaborMessage({ children }: { children: React.ReactNode }) {
+function TableHeading({
+  children,
+  align = "left",
+}: {
+  children: React.ReactNode;
+  align?: "left" | "right";
+}) {
   return (
-    <div className="grid min-h-40 place-items-center px-5 py-8 text-sm text-zinc-500">
+    <th
+      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 ${
+        align === "right"
+          ? "text-right"
+          : ""
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function TableMessage({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid min-h-40 place-items-center p-6 text-sm text-zinc-500">
       {children}
     </div>
   );
 }
 
-function parseOptionalNumber(value: string): number | undefined | null {
-  const trimmed = value.trim();
+function SmallButton({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+}: {
+  icon: typeof Pencil;
+  label: string;
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      title={label}
+      className="inline-flex h-8 items-center gap-1 rounded-md border border-zinc-200 px-2 text-xs font-semibold text-zinc-600 hover:bg-zinc-50 disabled:opacity-50"
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+    </button>
+  );
+}
 
-  if (!trimmed) {
+function StatusBadge({
+  status,
+}: {
+  status: string;
+}) {
+  return (
+    <span className="rounded-full bg-zinc-100 px-2 py-1 text-[11px] font-semibold text-zinc-600">
+      {formatLabel(status)}
+    </span>
+  );
+}
+
+function parseOptionalNumber(
+  value: string,
+): number | undefined | null {
+  if (!value.trim()) {
     return undefined;
   }
 
-  const parsed = Number(trimmed);
+  const number =
+    Number(value);
 
-  return Number.isFinite(parsed) ? parsed : null;
+  return Number.isFinite(number)
+    ? number
+    : null;
 }
 
-function getMembershipName(user: {
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-}): string {
-  const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
+function getMembershipName(
+  user: {
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+  },
+): string {
+  const name = [
+    user.firstName,
+    user.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return name || user.email;
 }
 
-function formatLabel(value: string): string {
+function formatCurrency(
+  value: number,
+): string {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  ).format(value);
+}
+
+function formatLabel(
+  value: string,
+): string {
   return value
     .toLowerCase()
     .replaceAll("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function formatCurrency(value: string): string {
-  const amount = Number(value);
-
-  if (!Number.isFinite(amount)) {
-    return "$0.00";
-  }
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
+    .replace(
+      /\b\w/g,
+      (letter) =>
+        letter.toUpperCase(),
+    );
 }
 
 function formatElapsedTime(
   startedAt: string,
   completedAt: string | null,
 ): string {
-  const start = new Date(startedAt).getTime();
+  const start =
+    new Date(
+      startedAt,
+    ).getTime();
 
-  const end = completedAt ? new Date(completedAt).getTime() : Date.now();
+  const end = completedAt
+    ? new Date(
+        completedAt,
+      ).getTime()
+    : Date.now();
 
-  const totalMinutes = Math.max(0, Math.floor((end - start) / 60000));
+  const minutes =
+    Math.max(
+      0,
+      Math.floor(
+        (end - start) /
+          60000,
+      ),
+    );
 
-  const hours = Math.floor(totalMinutes / 60);
+  const hours =
+    Math.floor(
+      minutes / 60,
+    );
 
-  const minutes = totalMinutes % 60;
+  const remainder =
+    minutes % 60;
 
-  if (hours === 0) {
-    return `${minutes}m`;
-  }
-
-  return `${hours}h ${minutes}m`;
+  return hours
+    ? `${hours}h ${remainder}m`
+    : `${remainder}m`;
 }

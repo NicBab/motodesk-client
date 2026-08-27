@@ -813,7 +813,7 @@ function ActionFields({
               <input
                 value={approvedBy}
                 onChange={(event) => setApprovedBy(event.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm"
+                className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-900 caret-zinc-900 outline-none focus:border-orange-500"
               />
             </label>
           </div>
@@ -829,7 +829,7 @@ function ActionFields({
               type="number"
               min="0"
               step="0.01"
-              className="h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm"
+              className="h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-900 caret-zinc-900 outline-none focus:border-orange-500"
             />
           </label>
         </>
@@ -905,7 +905,7 @@ function ActionFields({
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             placeholder="Reason or notes..."
-            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900"
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-orange-500"
           />
         </label>
       ) : null}

@@ -1,5 +1,5 @@
 export type RepairOrderLaborStatus =
-  | "PENDING"
+  | "PROPOSED"
   | "ACTIVE"
   | "COMPLETED"
   | "CANCELLED";

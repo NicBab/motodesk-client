@@ -1,14 +1,12 @@
 "use client";
 
-type RepairOrderTab =
-  | "overview"
+export type RepairOrderTab =
   | "estimate"
   | "actions"
   | "labor"
   | "parts"
-  | "additional-work"
-  | "approval"
-  | "cashier";
+  | "status"
+  | "history";
 
 type RepairOrderTabsProps = {
   activeTab: RepairOrderTab;
@@ -19,10 +17,6 @@ const tabs: Array<{
   id: RepairOrderTab;
   label: string;
 }> = [
-  {
-    id: "overview",
-    label: "Overview",
-  },
   {
     id: "estimate",
     label: "Estimate",
@@ -40,33 +34,40 @@ const tabs: Array<{
     label: "Parts",
   },
   {
-    id: "additional-work",
-    label: "Additional Work",
+    id: "status",
+    label: "Status",
   },
   {
-    id: "approval",
-    label: "Approval",
-  },
-  {
-    id: "cashier",
-    label: "Cashier / Pickup",
+    id: "history",
+    label: "History",
   },
 ];
 
-export function RepairOrderTabs({ activeTab, onChange }: RepairOrderTabsProps) {
+export function RepairOrderTabs({
+  activeTab,
+  onChange,
+}: RepairOrderTabsProps) {
   return (
     <div className="overflow-x-auto border-b border-zinc-200">
-      <nav className="flex min-w-max gap-1" aria-label="Repair order sections">
+      <nav
+        className="flex min-w-max gap-1"
+        aria-label="Repair order sections"
+      >
         {tabs.map((tab) => {
-          const active = activeTab === tab.id;
+          const active =
+            activeTab === tab.id;
 
           return (
             <button
               key={tab.id}
               type="button"
-              onClick={() => onChange(tab.id)}
+              onClick={() =>
+                onChange(tab.id)
+              }
               className={`relative whitespace-nowrap px-4 py-3 text-sm font-semibold transition ${
-                active ? "text-orange-600" : "text-zinc-500 hover:text-zinc-900"
+                active
+                  ? "text-orange-600"
+                  : "text-zinc-500 hover:text-zinc-900"
               }`}
             >
               {tab.label}
@@ -81,5 +82,3 @@ export function RepairOrderTabs({ activeTab, onChange }: RepairOrderTabsProps) {
     </div>
   );
 }
-
-export type { RepairOrderTab };

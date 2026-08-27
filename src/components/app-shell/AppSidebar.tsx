@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   Bike,
@@ -11,9 +12,10 @@ import {
   Package,
   Users,
   Wrench,
+  X,
 } from "lucide-react";
 
-//************************************************************** */
+import { useOpenRepairOrders } from "@/features/repair-orders/open-repair-orders.context";
 
 const navigationItems = [
   {
@@ -53,10 +55,30 @@ const navigationItems = [
   },
 ] as const;
 
-//************************************************************** */
-
 export function AppSidebar() {
   const pathname = usePathname();
+
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const { openRepairOrders, closeRepairOrder } = useOpenRepairOrders();
+
+  const activeRepairOrderId = searchParams.get("ro");
+
+  function handleCloseRepairOrder(
+    event: React.MouseEvent<HTMLButtonElement>,
+    repairOrderId: string,
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    closeRepairOrder(repairOrderId);
+
+    if (activeRepairOrderId === repairOrderId) {
+      router.push("/repair-orders");
+    }
+  }
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-zinc-800 bg-zinc-950 text-zinc-300">
@@ -103,6 +125,53 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        {openRepairOrders.length > 0 ? (
+          <div className="mt-3 space-y-1 border-t border-zinc-800 pt-3">
+            <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-600">
+              Open ROs
+            </p>
+
+            {openRepairOrders.map((repairOrder) => {
+              const active = activeRepairOrderId === repairOrder.id;
+
+              return (
+                <Link
+                  key={repairOrder.id}
+                  href={`/repair-orders?ro=${repairOrder.id}`}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                    active
+                      ? "bg-zinc-800 text-white ring-1 ring-orange-500/50"
+                      : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                  }`}
+                >
+                  <Wrench className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+
+                  <div className="min-w-0 flex-1">
+                    <p className="font-mono text-xs font-semibold text-zinc-100">
+                      RO #{repairOrder.roNumber}
+                    </p>
+
+                    <p className="truncate text-xs text-zinc-500">
+                      {repairOrder.customerName}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(event) =>
+                      handleCloseRepairOrder(event, repairOrder.id)
+                    }
+                    title="Close quick reference"
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-zinc-500 transition hover:bg-zinc-700 hover:text-white"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
       </nav>
 
       <div className="border-t border-zinc-800 px-5 py-4">
@@ -113,5 +182,3 @@ export function AppSidebar() {
     </aside>
   );
 }
-
-//************************************************************** */

@@ -63,6 +63,42 @@ export type RepairOrderVehicle = {
   vin: string | null;
 };
 
+export type RepairOrderMembershipUser = {
+  id: string;
+
+  firstName: string | null;
+  lastName: string | null;
+
+  email: string;
+};
+
+export type RepairOrderMembership = {
+  id: string;
+  role: string;
+
+  user: RepairOrderMembershipUser;
+};
+
+export type RepairOrderStatusHistoryEntry = {
+  id: string;
+  repairOrderId: string;
+
+  status: RepairOrderStatus;
+  previousStatus: RepairOrderStatus | null;
+
+  changedByMembershipId: string | null;
+
+  notes: string | null;
+  automatic: boolean;
+
+  changedAt: string;
+
+  changedByMembership:
+    | RepairOrderMembership
+    | null;
+};
+
+
 export type RepairOrder = {
   id: string;
   organizationId: string;
@@ -123,6 +159,18 @@ export type RepairOrder = {
 
   customer: RepairOrderCustomer;
   vehicle: RepairOrderVehicle;
+
+  serviceAdvisor?:
+  | RepairOrderMembership
+  | null;
+
+primaryTechnician?:
+  | RepairOrderMembership
+  | null;
+
+statusHistory?:
+  RepairOrderStatusHistoryEntry[];
+
 
   createdAt: string;
   updatedAt: string;
@@ -319,5 +367,7 @@ export type ResumeRepairOrderInput =
       pickupNotes?: string;
     };
   };
+
+  
 
 // //************************************************************** */
