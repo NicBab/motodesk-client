@@ -17,6 +17,8 @@ import { VendorsTab } from "@/features/parts/components/VendorsTab";
 
 import { ReturnsTab } from "@/features/parts/components/ReturnsTab";
 
+import { ToBeOrderedTab } from "@/features/parts/components/ToBeOrderedTab";
+
 //************************************************************** */
 
 const validTabs: PartsTab[] = [
@@ -76,6 +78,8 @@ export default function PartsPage() {
 
       {activeTab === "inventory" ? <PartsInventoryTab /> : null}
 
+      {activeTab === "to-be-ordered" ? <ToBeOrderedTab /> : null}
+
       {activeTab === "purchase-orders" ? <PurchaseOrdersTab /> : null}
 
       {activeTab === "receiving" ? <ReceivingTab /> : null}
@@ -86,6 +90,7 @@ export default function PartsPage() {
 
       {![
         "inventory",
+        "to-be-ordered",
         "purchase-orders",
         "receiving",
         "returns",

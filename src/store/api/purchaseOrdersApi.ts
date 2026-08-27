@@ -112,6 +112,12 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "RepairOrder",
+
+          id: "PART_ORDER_DEMAND",
+        },
       ],
     }),
 

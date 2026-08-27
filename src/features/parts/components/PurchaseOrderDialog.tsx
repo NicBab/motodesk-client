@@ -12,6 +12,8 @@ import { useCreatePurchaseOrderMutation } from "@/store/api/purchaseOrdersApi";
 
 import { useGetVendorsQuery } from "@/store/api/vendorsApi";
 
+//************************************************************** */
+
 type PurchaseOrderDraftLine = {
   key: string;
 
@@ -20,19 +22,48 @@ type PurchaseOrderDraftLine = {
 
   partId: string;
 
+  repairOrderPartLineId: string;
+
   quantity: string;
   unitCost: string;
 };
+
+//************************************************************** */
+
+export type PurchaseOrderInitialLine = {
+  partId?: string;
+
+  repairOrderPartLineId?: string;
+
+  partNumber: string;
+
+  description: string;
+
+  quantity: number;
+
+  unitCost: number;
+};
+
+//************************************************************** */
 
 type Props = {
   organizationId: string;
 
   open: boolean;
 
+  initialLines?: PurchaseOrderInitialLine[];
+
   onClose: () => void;
 };
 
-export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
+//************************************************************** */
+
+export function PurchaseOrderDialog({
+  organizationId,
+  open,
+  initialLines,
+  onClose,
+}: Props) {
   const [vendorId, setVendorId] = useState("");
 
   const [expectedAt, setExpectedAt] = useState("");
@@ -45,22 +76,30 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
 
   const [notes, setNotes] = useState("");
 
-  const [lines, setLines] = useState<PurchaseOrderDraftLine[]>([
-    createEmptyLine(),
-  ]);
+  const [lines, setLines] = useState<PurchaseOrderDraftLine[]>(() =>
+    initialLines?.length
+      ? initialLines.map(createInitialLine)
+      : [createEmptyLine()],
+  );
+
+  //************************************************************** */
 
   const { data: vendors = [] } = useGetVendorsQuery({
     organizationId,
+
     isActive: true,
   });
 
   const { data: parts = [] } = useGetPartsQuery({
     organizationId,
+
     isActive: true,
   });
 
   const [createPurchaseOrder, { isLoading: isCreating }] =
     useCreatePurchaseOrderMutation();
+
+  //************************************************************** */
 
   const partLookup = useMemo(() => {
     const lookup = new Map<string, (typeof parts)[number]>();
@@ -80,9 +119,13 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
     return lookup;
   }, [parts]);
 
+  //************************************************************** */
+
   if (!open) {
     return null;
   }
+
+  //************************************************************** */
 
   const subtotal = lines.reduce(
     (total, line) =>
@@ -91,6 +134,8 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
   );
 
   const total = subtotal + numberValue(shippingCost) + numberValue(taxAmount);
+
+  //************************************************************** */
 
   function updateLine(key: string, updates: Partial<PurchaseOrderDraftLine>) {
     setLines((current) =>
@@ -105,13 +150,25 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
     );
   }
 
+  //************************************************************** */
+
   function handlePartNumberChange(key: string, value: string) {
     updateLine(key, {
       partNumber: value,
 
+      /*
+       * If the user manually changes the part
+       * number, clear only the inventory link.
+       *
+       * Preserve repairOrderPartLineId because
+       * special-order RO parts are allowed to
+       * remain non-inventory parts.
+       */
       partId: "",
     });
   }
+
+  //************************************************************** */
 
   function handleResolvePart(key: string) {
     const line = lines.find((item) => item.key === key);
@@ -151,9 +208,13 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
     });
   }
 
+  //************************************************************** */
+
   function handleAddLine() {
     setLines((current) => [...current, createEmptyLine()]);
   }
+
+  //************************************************************** */
 
   function handleRemoveLine(key: string) {
     setLines((current) => {
@@ -164,6 +225,8 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
       return current.filter((line) => line.key !== key);
     });
   }
+
+  //************************************************************** */
 
   async function handleCreate() {
     if (!vendorId) {
@@ -212,6 +275,8 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
       }
     }
 
+    //************************************************************** */
+
     try {
       await createPurchaseOrder({
         organizationId,
@@ -251,6 +316,12 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                 description: line.description.trim(),
               }),
 
+          ...(line.repairOrderPartLineId
+            ? {
+                repairOrderPartLineId: line.repairOrderPartLineId,
+              }
+            : {}),
+
           orderedQty: Number(line.quantity),
 
           unitCost: Number(line.unitCost),
@@ -264,6 +335,8 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
       toast.error("MotoDesk could not create the purchase order.");
     }
   }
+
+  //************************************************************** */
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
@@ -386,6 +459,7 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                             onChange={(event) =>
                               handlePartNumberChange(
                                 line.key,
+
                                 event.target.value,
                               )
                             }
@@ -405,6 +479,10 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                             <p className="mt-1 text-xs font-medium text-emerald-600">
                               Inventory linked
                             </p>
+                          ) : line.repairOrderPartLineId ? (
+                            <p className="mt-1 text-xs font-medium text-blue-600">
+                              RO special order
+                            </p>
                           ) : line.partNumber.trim() ? (
                             <p className="mt-1 text-xs text-zinc-400">
                               Manual / not in inventory
@@ -416,9 +494,13 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                           <input
                             value={line.description}
                             onChange={(event) =>
-                              updateLine(line.key, {
-                                description: event.target.value,
-                              })
+                              updateLine(
+                                line.key,
+
+                                {
+                                  description: event.target.value,
+                                },
+                              )
                             }
                             placeholder="Part description"
                             className="h-9 w-full rounded-md border border-zinc-300 bg-white px-2 text-sm font-medium text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-500"
@@ -440,9 +522,13 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                             step="0.001"
                             value={line.quantity}
                             onChange={(event) =>
-                              updateLine(line.key, {
-                                quantity: event.target.value,
-                              })
+                              updateLine(
+                                line.key,
+
+                                {
+                                  quantity: event.target.value,
+                                },
+                              )
                             }
                             className="h-9 w-24 rounded-md border border-zinc-300 bg-white px-2 text-right text-sm font-medium text-zinc-900 outline-none focus:border-orange-500"
                           />
@@ -455,9 +541,13 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
                             step="0.01"
                             value={line.unitCost}
                             onChange={(event) =>
-                              updateLine(line.key, {
-                                unitCost: event.target.value,
-                              })
+                              updateLine(
+                                line.key,
+
+                                {
+                                  unitCost: event.target.value,
+                                },
+                              )
                             }
                             className="h-9 w-28 rounded-md border border-zinc-300 bg-white px-2 text-right text-sm font-medium text-zinc-900 outline-none focus:border-orange-500"
                           />
@@ -554,23 +644,55 @@ export function PurchaseOrderDialog({ organizationId, open, onClose }: Props) {
   );
 }
 
+//************************************************************** */
+
 function createEmptyLine(): PurchaseOrderDraftLine {
   return {
     key: crypto.randomUUID(),
 
     partNumber: "",
+
     description: "",
 
     partId: "",
 
+    repairOrderPartLineId: "",
+
     quantity: "1",
+
     unitCost: "0",
   };
 }
 
+//************************************************************** */
+
+function createInitialLine(
+  line: PurchaseOrderInitialLine,
+): PurchaseOrderDraftLine {
+  return {
+    key: crypto.randomUUID(),
+
+    partNumber: line.partNumber,
+
+    description: line.description,
+
+    partId: line.partId ?? "",
+
+    repairOrderPartLineId: line.repairOrderPartLineId ?? "",
+
+    quantity: String(line.quantity),
+
+    unitCost: String(line.unitCost),
+  };
+}
+
+//************************************************************** */
+
 function normalizePartNumber(value: string): string {
   return value.trim().toUpperCase();
 }
+
+//************************************************************** */
 
 function numberValue(value: string): number {
   const parsed = Number(value);
@@ -578,12 +700,17 @@ function numberValue(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+//************************************************************** */
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
+
     currency: "USD",
   }).format(value);
 }
+
+//************************************************************** */
 
 function Field({
   label,
@@ -591,6 +718,7 @@ function Field({
   children,
 }: {
   label: string;
+
   required?: boolean;
 
   children: React.ReactNode;
@@ -607,6 +735,8 @@ function Field({
     </label>
   );
 }
+
+//************************************************************** */
 
 function Heading({
   children,
@@ -627,13 +757,17 @@ function Heading({
   );
 }
 
+//************************************************************** */
+
 function SummaryRow({
   label,
   value,
   strong = false,
 }: {
   label: string;
+
   value: number;
+
   strong?: boolean;
 }) {
   return (
@@ -661,5 +795,9 @@ function SummaryRow({
   );
 }
 
+//************************************************************** */
+
 const inputClassName =
   "h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-orange-500";
+
+//************************************************************** */

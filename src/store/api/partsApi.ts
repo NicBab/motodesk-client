@@ -12,6 +12,11 @@ import type {
 
 import { baseApi } from "./baseApi";
 
+import type {
+  PartOrderDemandItem,
+  PartOrderDemandQuery,
+} from "@/features/parts/part-order-demand.types";
+
 type ApiSuccessResponse<T> = {
   success: true;
   data: T;
@@ -75,6 +80,36 @@ export const partsApi = baseApi.injectEndpoints({
                 id: "LIST",
               },
             ],
+    }),
+
+    getPartOrderDemand: builder.query<
+      PartOrderDemandItem[],
+      PartOrderDemandQuery
+    >({
+      query: ({ organizationId, search }) => ({
+        url: `/organizations/${organizationId}/parts/order-demand`,
+
+        method: "GET",
+
+        params: {
+          ...(search
+            ? {
+                search,
+              }
+            : {}),
+        },
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<PartOrderDemandItem[]>,
+      ) => response.data,
+
+      providesTags: [
+        {
+          type: "RepairOrder",
+          id: "PART_ORDER_DEMAND",
+        },
+      ],
     }),
 
     getPart: builder.query<Part, GetPartInput>({
@@ -257,4 +292,5 @@ export const {
   useArchivePartMutation,
   useAdjustPartInventoryMutation,
   useCycleCountPartInventoryMutation,
+  useGetPartOrderDemandQuery,
 } = partsApi;
