@@ -5,15 +5,20 @@ import type {
   PurchaseOrder,
   PurchaseOrderActionInput,
   PurchaseOrderListQuery,
+  ReceivePurchaseOrderLineInput,
   UpdatePurchaseOrderInput,
 } from "@/features/parts/purchase-order.types";
 
 import { baseApi } from "./baseApi";
 
+//************************************************************** */
+
 type ApiSuccessResponse<T> = {
   success: true;
   data: T;
 };
+
+//************************************************************** */
 
 export const purchaseOrdersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -63,6 +68,8 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
             ],
     }),
 
+    //************************************************************** */
+
     getPurchaseOrder: builder.query<PurchaseOrder, GetPurchaseOrderInput>({
       query: ({ organizationId, purchaseOrderId }) => ({
         url: `/organizations/${organizationId}/purchase-orders/${purchaseOrderId}`,
@@ -81,6 +88,8 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
         },
       ],
     }),
+
+    //************************************************************** */
 
     createPurchaseOrder: builder.mutation<
       PurchaseOrder,
@@ -105,6 +114,8 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
         },
       ],
     }),
+
+    //************************************************************** */
 
     updatePurchaseOrder: builder.mutation<
       PurchaseOrder,
@@ -135,6 +146,8 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
         },
       ],
     }),
+
+    //************************************************************** */
 
     orderPurchaseOrder: builder.mutation<
       PurchaseOrder,
@@ -169,8 +182,66 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "Inventory",
+
+          id: "LIST",
+        },
       ],
     }),
+
+    //************************************************************** */
+
+    receivePurchaseOrderLine: builder.mutation<
+      PurchaseOrder,
+      ReceivePurchaseOrderLineInput
+    >({
+      query: ({ organizationId, purchaseOrderId, data }) => ({
+        url: `/organizations/${organizationId}/purchase-orders/${purchaseOrderId}/receive`,
+
+        method: "POST",
+
+        body: data,
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<PurchaseOrder>) =>
+        response.data,
+
+      invalidatesTags: (_result, _error, { purchaseOrderId }) => [
+        {
+          type: "PurchaseOrder",
+
+          id: purchaseOrderId,
+        },
+
+        {
+          type: "PurchaseOrder",
+
+          id: "LIST",
+        },
+
+        {
+          type: "Part",
+
+          id: "LIST",
+        },
+
+        {
+          type: "Inventory",
+
+          id: "LIST",
+        },
+
+        {
+          type: "RepairOrder",
+
+          id: "LIST",
+        },
+      ],
+    }),
+
+    //************************************************************** */
 
     cancelPurchaseOrder: builder.mutation<
       PurchaseOrder,
@@ -207,10 +278,24 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "Inventory",
+
+          id: "LIST",
+        },
+
+        {
+          type: "RepairOrder",
+
+          id: "LIST",
+        },
       ],
     }),
   }),
 });
+
+//************************************************************** */
 
 export const {
   useGetPurchaseOrdersQuery,
@@ -218,5 +303,8 @@ export const {
   useCreatePurchaseOrderMutation,
   useUpdatePurchaseOrderMutation,
   useOrderPurchaseOrderMutation,
+  useReceivePurchaseOrderLineMutation,
   useCancelPurchaseOrderMutation,
 } = purchaseOrdersApi;
+
+//************************************************************** */

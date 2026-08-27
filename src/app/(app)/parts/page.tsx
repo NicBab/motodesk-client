@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { PartsInventoryTab } from "@/features/parts/components/PartsInventoryTab";
 
@@ -11,10 +11,54 @@ import {
 
 import { PurchaseOrdersTab } from "@/features/parts/components/PurchaseOrdersTab";
 
+import { ReceivingTab } from "@/features/parts/components/ReceivingTab";
+
 import { VendorsTab } from "@/features/parts/components/VendorsTab";
 
+import { ReturnsTab } from "@/features/parts/components/ReturnsTab";
+
+//************************************************************** */
+
+const validTabs: PartsTab[] = [
+  "inventory",
+  "most-sold",
+  "to-be-ordered",
+  "purchase-orders",
+  "receiving",
+  "returns",
+  "vendors",
+];
+
+//************************************************************** */
+
 export default function PartsPage() {
-  const [activeTab, setActiveTab] = useState<PartsTab>("inventory");
+  const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  const queryTab = searchParams.get("tab");
+
+  const activeTab: PartsTab = isPartsTab(queryTab) ? queryTab : "inventory";
+
+  //************************************************************** */
+
+  function handleTabChange(tab: PartsTab) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (tab === "inventory") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+
+    const query = params.toString();
+
+    router.replace(query ? `/parts?${query}` : "/parts", {
+      scroll: false,
+    });
+  }
+
+  //************************************************************** */
 
   return (
     <div className="space-y-6">
@@ -28,20 +72,32 @@ export default function PartsPage() {
         </p>
       </div>
 
-      <PartsTabs activeTab={activeTab} onChange={setActiveTab} />
+      <PartsTabs activeTab={activeTab} onChange={handleTabChange} />
 
       {activeTab === "inventory" ? <PartsInventoryTab /> : null}
 
       {activeTab === "purchase-orders" ? <PurchaseOrdersTab /> : null}
 
+      {activeTab === "receiving" ? <ReceivingTab /> : null}
+
+      {activeTab === "returns" ? <ReturnsTab /> : null}
+
       {activeTab === "vendors" ? <VendorsTab /> : null}
 
-      {!["inventory", "purchase-orders", "vendors"].includes(activeTab) ? (
+      {![
+        "inventory",
+        "purchase-orders",
+        "receiving",
+        "returns",
+        "vendors",
+      ].includes(activeTab) ? (
         <ComingNext tab={activeTab} />
       ) : null}
     </div>
   );
 }
+
+//************************************************************** */
 
 function ComingNext({ tab }: { tab: PartsTab }) {
   return (
@@ -59,8 +115,18 @@ function ComingNext({ tab }: { tab: PartsTab }) {
   );
 }
 
+//************************************************************** */
+
+function isPartsTab(value: string | null): value is PartsTab {
+  return value !== null && validTabs.includes(value as PartsTab);
+}
+
+//************************************************************** */
+
 function formatLabel(value: string): string {
   return value
     .replaceAll("-", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
+
+//************************************************************** */

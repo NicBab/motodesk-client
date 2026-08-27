@@ -2,6 +2,8 @@ import type { Part } from "./part.types";
 
 import type { Vendor } from "./vendor.types";
 
+//************************************************************** */
+
 export type PurchaseOrderStatus =
   | "DRAFT"
   | "SUBMITTED"
@@ -10,6 +12,8 @@ export type PurchaseOrderStatus =
   | "RECEIVED"
   | "CANCELLED"
   | "CLOSED";
+
+//************************************************************** */
 
 export type PurchaseOrderRepairOrderPartLine = {
   id: string;
@@ -23,6 +27,8 @@ export type PurchaseOrderRepairOrderPartLine = {
 
   status: string;
 };
+
+//************************************************************** */
 
 export type PurchaseOrderLine = {
   id: string;
@@ -38,8 +44,15 @@ export type PurchaseOrderLine = {
 
   orderedQty: string;
   receivedQty: string;
+  damagedQty: string;
+  backorderedQty: string;
 
   unitCost: string;
+  actualCost: string | null;
+
+  invoiceNumber: string | null;
+  packingSlip: string | null;
+  binLocation: string | null;
 
   part: Part | null;
 
@@ -48,6 +61,8 @@ export type PurchaseOrderLine = {
   createdAt: string;
   updatedAt: string;
 };
+
+//************************************************************** */
 
 export type PurchaseOrder = {
   id: string;
@@ -80,6 +95,8 @@ export type PurchaseOrder = {
   updatedAt: string;
 };
 
+//************************************************************** */
+
 export type PurchaseOrderListQuery = {
   organizationId: string;
 
@@ -91,10 +108,14 @@ export type PurchaseOrderListQuery = {
   isActive?: boolean;
 };
 
+//************************************************************** */
+
 export type GetPurchaseOrderInput = {
   organizationId: string;
   purchaseOrderId: string;
 };
+
+//************************************************************** */
 
 export type CreatePurchaseOrderLineInput = {
   partId?: string;
@@ -107,6 +128,8 @@ export type CreatePurchaseOrderLineInput = {
   orderedQty: number;
   unitCost: number;
 };
+
+//************************************************************** */
 
 export type CreatePurchaseOrderInput = {
   organizationId: string;
@@ -125,6 +148,8 @@ export type CreatePurchaseOrderInput = {
   lines: CreatePurchaseOrderLineInput[];
 };
 
+//************************************************************** */
+
 export type UpdatePurchaseOrderData = {
   vendorId?: string;
 
@@ -138,6 +163,8 @@ export type UpdatePurchaseOrderData = {
   notes?: string;
 };
 
+//************************************************************** */
+
 export type UpdatePurchaseOrderInput = {
   organizationId: string;
   purchaseOrderId: string;
@@ -145,11 +172,45 @@ export type UpdatePurchaseOrderInput = {
   data: UpdatePurchaseOrderData;
 };
 
+//************************************************************** */
+
 export type PurchaseOrderActionInput = {
   organizationId: string;
   purchaseOrderId: string;
 };
 
+//************************************************************** */
+
+export type ReceivePurchaseOrderLineData = {
+  purchaseOrderLineId: string;
+
+  quantity: number;
+
+  damagedQty?: number;
+  backorderedQty?: number;
+
+  actualCost?: number;
+
+  invoiceNumber?: string;
+  packingSlip?: string;
+  binLocation?: string;
+
+  notes?: string;
+};
+
+//************************************************************** */
+
+export type ReceivePurchaseOrderLineInput = {
+  organizationId: string;
+  purchaseOrderId: string;
+
+  data: ReceivePurchaseOrderLineData;
+};
+
+//************************************************************** */
+
 export type CancelPurchaseOrderInput = PurchaseOrderActionInput & {
   notes?: string;
 };
+
+//************************************************************** */

@@ -25,6 +25,7 @@ tagTypes: [
   "Inventory",
   "Vendor",
   "PurchaseOrder",
+  "PartReturn",
 ],
 
   endpoints: () => ({}),
