@@ -6,9 +6,12 @@ import { useMemo, useState } from "react";
 
 import { toast } from "sonner";
 
-import { useReceivePurchaseOrderLineMutation } from "@/store/api/purchaseOrdersApi";
+import { useReceivePurchaseOrderMutation } from "@/store/api/purchaseOrdersApi";
 
-import type { PurchaseOrder, PurchaseOrderLine } from "../purchase-order.types";
+import type {
+  PurchaseOrder,
+  PurchaseOrderLine,
+} from "../purchase-order.types";
 
 //************************************************************** */
 
@@ -26,16 +29,11 @@ type Props = {
 
 type ReceiveLineState = {
   receivedQty: string;
-
   damagedQty: string;
   backorderedQty: string;
 
   actualCost: string;
-
-  invoiceNumber: string;
-  packingSlip: string;
   binLocation: string;
-
   notes: string;
 };
 
@@ -51,10 +49,14 @@ export function ReceivePurchaseOrderDialog({
   open,
   onClose,
 }: Props) {
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [packingSlip, setPackingSlip] = useState("");
+  const [receiptNotes, setReceiptNotes] = useState("");
+
   const [receiveState, setReceiveState] = useState<ReceiveState>({});
 
-  const [receivePurchaseOrderLine, { isLoading }] =
-    useReceivePurchaseOrderLineMutation();
+  const [receivePurchaseOrder, { isLoading }] =
+    useReceivePurchaseOrderMutation();
 
   //************************************************************** */
 
@@ -120,7 +122,10 @@ export function ReceivePurchaseOrderDialog({
 
   //************************************************************** */
 
-  function resetReceiveState() {
+  function resetForm() {
+    setInvoiceNumber("");
+    setPackingSlip("");
+    setReceiptNotes("");
     setReceiveState({});
   }
 
@@ -131,8 +136,7 @@ export function ReceivePurchaseOrderDialog({
       return;
     }
 
-    resetReceiveState();
-
+    resetForm();
     onClose();
   }
 
@@ -157,7 +161,6 @@ export function ReceivePurchaseOrderDialog({
 
     if (receiptLines.length === 0) {
       toast.error("Enter a received quantity for at least one PO line.");
-
       return;
     }
 
@@ -170,60 +173,57 @@ export function ReceivePurchaseOrderDialog({
             remainingQty,
           )}.`,
         );
-
         return;
       }
 
       if (toNumber(state.damagedQty) < 0) {
         toast.error("Damaged quantity cannot be negative.");
-
         return;
       }
 
       if (toNumber(state.backorderedQty) < 0) {
         toast.error("Backordered quantity cannot be negative.");
-
         return;
       }
 
       if (toNumber(state.actualCost) < 0) {
         toast.error("Actual cost cannot be negative.");
-
         return;
       }
     }
 
     try {
-      for (const { line, state, quantity } of receiptLines) {
-        await receivePurchaseOrderLine({
-          organizationId,
+      await receivePurchaseOrder({
+        organizationId,
+        purchaseOrderId: purchaseOrder.id,
+        data: {
+          ...(invoiceNumber.trim()
+            ? {
+                invoiceNumber: invoiceNumber.trim(),
+              }
+            : {}),
 
-          purchaseOrderId: purchaseOrder.id,
+          ...(packingSlip.trim()
+            ? {
+                packingSlip: packingSlip.trim(),
+              }
+            : {}),
 
-          data: {
+          ...(receiptNotes.trim()
+            ? {
+                notes: receiptNotes.trim(),
+              }
+            : {}),
+
+          lines: receiptLines.map(({ line, state, quantity }) => ({
             purchaseOrderLineId: line.id,
-
             quantity,
-
             damagedQty: toNumber(state.damagedQty),
-
             backorderedQty: toNumber(state.backorderedQty),
 
             ...(hasNumber(state.actualCost)
               ? {
                   actualCost: toNumber(state.actualCost),
-                }
-              : {}),
-
-            ...(state.invoiceNumber.trim()
-              ? {
-                  invoiceNumber: state.invoiceNumber.trim(),
-                }
-              : {}),
-
-            ...(state.packingSlip.trim()
-              ? {
-                  packingSlip: state.packingSlip.trim(),
                 }
               : {}),
 
@@ -238,16 +238,15 @@ export function ReceivePurchaseOrderDialog({
                   notes: state.notes.trim(),
                 }
               : {}),
-          },
-        }).unwrap();
-      }
+          })),
+        },
+      }).unwrap();
 
       toast.success(
-        `Receipt saved for PO #${purchaseOrder.poNumber}. Inventory and linked repair orders were updated.`,
+        `Receipt saved for PO #${purchaseOrder.poNumber}. Receipt history, inventory, and linked repair orders were updated.`,
       );
 
-      resetReceiveState();
-
+      resetForm();
       onClose();
     } catch {
       toast.error("MotoDesk could not complete the purchase order receipt.");
@@ -286,9 +285,13 @@ export function ReceivePurchaseOrderDialog({
         </header>
 
         <div className="grid gap-3 border-b border-zinc-200 bg-zinc-50 px-6 py-4 sm:grid-cols-4">
+          <SummaryCard label="Status" value={formatStatus(purchaseOrder.status)} />
+
           <SummaryCard
-            label="Status"
-            value={formatStatus(purchaseOrder.status)}
+            label="Ordered"
+            value={
+              purchaseOrder.orderedAt ? formatDate(purchaseOrder.orderedAt) : "—"
+            }
           />
 
           <SummaryCard
@@ -301,11 +304,6 @@ export function ReceivePurchaseOrderDialog({
           />
 
           <SummaryCard
-            label="Lines"
-            value={String(purchaseOrder.lines.length)}
-          />
-
-          <SummaryCard
             label="Received"
             value={`${formatQuantity(totals.received)} / ${formatQuantity(
               totals.ordered,
@@ -313,16 +311,40 @@ export function ReceivePurchaseOrderDialog({
           />
         </div>
 
+        <div className="border-b border-zinc-200 px-6 py-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Field
+              label="Invoice #"
+              value={invoiceNumber}
+              disabled={isLoading}
+              placeholder="Vendor invoice number"
+              onChange={setInvoiceNumber}
+            />
+
+            <Field
+              label="Packing Slip"
+              value={packingSlip}
+              disabled={isLoading}
+              placeholder="Packing slip number"
+              onChange={setPackingSlip}
+            />
+
+            <Field
+              label="Receipt Notes"
+              value={receiptNotes}
+              disabled={isLoading}
+              placeholder="Notes for this receipt"
+              onChange={setReceiptNotes}
+            />
+          </div>
+        </div>
+
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           {purchaseOrder.lines.map((line) => {
             const state = getLineState(line);
-
             const orderedQty = toNumber(line.orderedQty);
-
             const alreadyReceivedQty = toNumber(line.receivedQty);
-
             const remainingQty = getRemainingQty(line);
-
             const complete = remainingQty <= 0;
 
             return (
@@ -352,6 +374,12 @@ export function ReceivePurchaseOrderDialog({
                           RO LINKED
                         </span>
                       ) : null}
+
+                      {!line.partId ? (
+                        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-bold text-zinc-600">
+                          SPECIAL ORDER
+                        </span>
+                      ) : null}
                     </div>
 
                     <p className="mt-1 font-mono text-xs text-zinc-500">
@@ -361,12 +389,10 @@ export function ReceivePurchaseOrderDialog({
 
                   <div className="grid grid-cols-3 gap-4 text-right text-xs">
                     <QuantitySummary label="Ordered" value={orderedQty} />
-
                     <QuantitySummary
                       label="Received"
                       value={alreadyReceivedQty}
                     />
-
                     <QuantitySummary
                       label="Remaining"
                       value={remainingQty}
@@ -424,99 +450,31 @@ export function ReceivePurchaseOrderDialog({
                   />
                 </div>
 
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Field
                     label="Bin Location"
                     value={state.binLocation}
-                    disabled={complete || isLoading}
-                    placeholder="A-1"
+                    disabled={complete || isLoading || !line.partId}
+                    placeholder={line.partId ? "A-1" : "Not applicable"}
                     onChange={(value) => updateLine(line, "binLocation", value)}
                   />
 
                   <Field
-                    label="Invoice #"
-                    value={state.invoiceNumber}
+                    label="Line Notes"
+                    value={state.notes}
                     disabled={complete || isLoading}
-                    placeholder="Invoice number"
-                    onChange={(value) =>
-                      updateLine(line, "invoiceNumber", value)
-                    }
-                  />
-
-                  <Field
-                    label="Packing Slip"
-                    value={state.packingSlip}
-                    disabled={complete || isLoading}
-                    placeholder="Packing slip"
-                    onChange={(value) => updateLine(line, "packingSlip", value)}
+                    placeholder="Optional line-level receiving note"
+                    onChange={(value) => updateLine(line, "notes", value)}
                   />
                 </div>
-
-                <div className="mt-3">
-                  <label className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-zinc-700">
-                      Receipt Notes
-                    </span>
-
-                    <input
-                      type="text"
-                      value={state.notes}
-                      disabled={complete || isLoading}
-                      onChange={(event) =>
-                        updateLine(line, "notes", event.target.value)
-                      }
-                      placeholder="Optional receiving note"
-                      className={inputClassName}
-                    />
-                  </label>
-                </div>
-
-                {toNumber(line.damagedQty) > 0 ||
-                toNumber(line.backorderedQty) > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-3 border-t border-zinc-100 pt-3 text-xs text-zinc-500">
-                    {toNumber(line.damagedQty) > 0 ? (
-                      <span>
-                        Previously damaged:{" "}
-                        <strong className="text-red-600">
-                          {formatQuantity(toNumber(line.damagedQty))}
-                        </strong>
-                      </span>
-                    ) : null}
-
-                    {toNumber(line.backorderedQty) > 0 ? (
-                      <span>
-                        Previously backordered:{" "}
-                        <strong className="text-amber-600">
-                          {formatQuantity(toNumber(line.backorderedQty))}
-                        </strong>
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
               </section>
             );
           })}
-
-          {purchaseOrder.lines.length === 0 ? (
-            <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-zinc-300 text-center">
-              <div>
-                <PackageCheck className="mx-auto h-8 w-8 text-zinc-300" />
-
-                <p className="mt-2 text-sm font-semibold text-zinc-700">
-                  No PO lines
-                </p>
-
-                <p className="mt-1 text-xs text-zinc-500">
-                  This purchase order has nothing available to receive.
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
 
         <footer className="flex flex-col-reverse gap-3 border-t border-zinc-200 bg-zinc-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-zinc-500">
-            Remaining quantity:{" "}
+            Remaining quantity: {" "}
             <strong className="text-zinc-700">
               {formatQuantity(totals.remaining)}
             </strong>
@@ -539,7 +497,6 @@ export function ReceivePurchaseOrderDialog({
               className="inline-flex h-10 items-center gap-2 rounded-lg bg-orange-500 px-4 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <PackageCheck className="h-4 w-4" />
-
               {isLoading ? "Processing..." : "Save Receipt"}
             </button>
           </div>
@@ -554,21 +511,13 @@ export function ReceivePurchaseOrderDialog({
 function createInitialLineState(line: PurchaseOrderLine): ReceiveLineState {
   return {
     receivedQty: "",
-
     damagedQty: "",
     backorderedQty: "",
-
     actualCost:
       line.actualCost !== null && line.actualCost !== undefined
         ? String(line.actualCost)
         : String(line.unitCost ?? ""),
-
-    invoiceNumber: line.invoiceNumber ?? "",
-
-    packingSlip: line.packingSlip ?? "",
-
     binLocation: line.binLocation ?? line.part?.location ?? "",
-
     notes: "",
   };
 }
@@ -593,19 +542,13 @@ function Field({
   onChange,
 }: {
   label: string;
-
   value: string;
-
   type?: "text" | "number";
-
   min?: string;
   max?: string;
   step?: string;
-
   placeholder?: string;
-
   disabled?: boolean;
-
   onChange: (value: string) => void;
 }) {
   return (
@@ -637,7 +580,6 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
         {label}
       </p>
-
       <p className="mt-0.5 text-sm font-bold text-zinc-800">{value}</p>
     </div>
   );
@@ -657,7 +599,6 @@ function QuantitySummary({
   return (
     <div>
       <p className="text-zinc-400">{label}</p>
-
       <p
         className={`mt-0.5 font-bold ${
           emphasize ? "text-amber-600" : "text-zinc-700"
@@ -679,7 +620,6 @@ function hasNumber(value: string): boolean {
 
 function toNumber(value: string | number | null | undefined): number {
   const number = Number(value ?? 0);
-
   return Number.isFinite(number) ? number : 0;
 }
 

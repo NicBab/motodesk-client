@@ -5,7 +5,7 @@ import type {
   PurchaseOrder,
   PurchaseOrderActionInput,
   PurchaseOrderListQuery,
-  ReceivePurchaseOrderLineInput,
+  ReceivePurchaseOrderInput,
   UpdatePurchaseOrderInput,
 } from "@/features/parts/purchase-order.types";
 
@@ -150,6 +150,12 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "RepairOrder",
+
+          id: "PART_ORDER_DEMAND",
+        },
       ],
     }),
 
@@ -194,14 +200,20 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "RepairOrder",
+
+          id: "PART_ORDER_DEMAND",
+        },
       ],
     }),
 
     //************************************************************** */
 
-    receivePurchaseOrderLine: builder.mutation<
+    receivePurchaseOrder: builder.mutation<
       PurchaseOrder,
-      ReceivePurchaseOrderLineInput
+      ReceivePurchaseOrderInput
     >({
       query: ({ organizationId, purchaseOrderId, data }) => ({
         url: `/organizations/${organizationId}/purchase-orders/${purchaseOrderId}/receive`,
@@ -243,6 +255,12 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
           type: "RepairOrder",
 
           id: "LIST",
+        },
+
+        {
+          type: "RepairOrder",
+
+          id: "PART_ORDER_DEMAND",
         },
       ],
     }),
@@ -296,6 +314,12 @@ export const purchaseOrdersApi = baseApi.injectEndpoints({
 
           id: "LIST",
         },
+
+        {
+          type: "RepairOrder",
+
+          id: "PART_ORDER_DEMAND",
+        },
       ],
     }),
   }),
@@ -309,7 +333,7 @@ export const {
   useCreatePurchaseOrderMutation,
   useUpdatePurchaseOrderMutation,
   useOrderPurchaseOrderMutation,
-  useReceivePurchaseOrderLineMutation,
+  useReceivePurchaseOrderMutation,
   useCancelPurchaseOrderMutation,
 } = purchaseOrdersApi;
 

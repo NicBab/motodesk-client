@@ -8,7 +8,12 @@ import { toast } from "sonner";
 
 import { useGetPartsQuery } from "@/store/api/partsApi";
 
-import { useCreatePurchaseOrderMutation } from "@/store/api/purchaseOrdersApi";
+import {
+  useCreatePurchaseOrderMutation,
+  useUpdatePurchaseOrderMutation,
+} from "@/store/api/purchaseOrdersApi";
+
+import type { PurchaseOrder } from "../purchase-order.types";
 
 import { useGetVendorsQuery } from "@/store/api/vendorsApi";
 
@@ -53,6 +58,8 @@ type Props = {
 
   initialLines?: PurchaseOrderInitialLine[];
 
+  purchaseOrder?: PurchaseOrder | null;
+
   onClose: () => void;
 };
 
@@ -62,25 +69,48 @@ export function PurchaseOrderDialog({
   organizationId,
   open,
   initialLines,
+  purchaseOrder = null,
   onClose,
 }: Props) {
-  const [vendorId, setVendorId] = useState("");
+  const editing = purchaseOrder?.status === "DRAFT";
 
-  const [expectedAt, setExpectedAt] = useState("");
-
-  const [vendorReference, setVendorReference] = useState("");
-
-  const [shippingCost, setShippingCost] = useState("0");
-
-  const [taxAmount, setTaxAmount] = useState("0");
-
-  const [notes, setNotes] = useState("");
-
-  const [lines, setLines] = useState<PurchaseOrderDraftLine[]>(() =>
-    initialLines?.length
-      ? initialLines.map(createInitialLine)
-      : [createEmptyLine()],
+  const [vendorId, setVendorId] = useState(
+    purchaseOrder?.vendorId ?? "",
   );
+
+  const [expectedAt, setExpectedAt] = useState(
+    purchaseOrder?.expectedAt
+      ? toDateInputValue(purchaseOrder.expectedAt)
+      : "",
+  );
+
+  const [vendorReference, setVendorReference] = useState(
+    purchaseOrder?.vendorReference ?? "",
+  );
+
+  const [shippingCost, setShippingCost] = useState(
+    purchaseOrder?.shippingCost ?? "0",
+  );
+
+  const [taxAmount, setTaxAmount] = useState(
+    purchaseOrder?.taxAmount ?? "0",
+  );
+
+  const [notes, setNotes] = useState(
+    purchaseOrder?.notes ?? "",
+  );
+
+  const [lines, setLines] = useState<PurchaseOrderDraftLine[]>(() => {
+    if (purchaseOrder?.lines.length) {
+      return purchaseOrder.lines.map(createDraftLineFromPurchaseOrderLine);
+    }
+
+    if (initialLines?.length) {
+      return initialLines.map(createInitialLine);
+    }
+
+    return [createEmptyLine()];
+  });
 
   //************************************************************** */
 
@@ -98,6 +128,11 @@ export function PurchaseOrderDialog({
 
   const [createPurchaseOrder, { isLoading: isCreating }] =
     useCreatePurchaseOrderMutation();
+
+  const [updatePurchaseOrder, { isLoading: isUpdating }] =
+    useUpdatePurchaseOrderMutation();
+
+  const isSaving = isCreating || isUpdating;
 
   //************************************************************** */
 
@@ -228,7 +263,7 @@ export function PurchaseOrderDialog({
 
   //************************************************************** */
 
-  async function handleCreate() {
+  async function handleSave() {
     if (!vendorId) {
       toast.error("Select a vendor.");
 
@@ -277,62 +312,94 @@ export function PurchaseOrderDialog({
 
     //************************************************************** */
 
+    const payloadLines = enteredLines.map((line) => ({
+      ...(line.partId
+        ? {
+            partId: line.partId,
+          }
+        : {
+            partNumber: line.partNumber.trim(),
+
+            description: line.description.trim(),
+          }),
+
+      ...(line.repairOrderPartLineId
+        ? {
+            repairOrderPartLineId: line.repairOrderPartLineId,
+          }
+        : {}),
+
+      orderedQty: Number(line.quantity),
+
+      unitCost: Number(line.unitCost),
+    }));
+
     try {
-      await createPurchaseOrder({
-        organizationId,
+      if (editing && purchaseOrder) {
+        await updatePurchaseOrder({
+          organizationId,
 
-        vendorId,
+          purchaseOrderId: purchaseOrder.id,
 
-        ...(expectedAt
-          ? {
-              expectedAt,
-            }
-          : {}),
+          data: {
+            vendorId,
 
-        ...(vendorReference.trim()
-          ? {
-              vendorReference: vendorReference.trim(),
-            }
-          : {}),
+            expectedAt: expectedAt || null,
 
-        shippingCost: numberValue(shippingCost),
+            vendorReference: vendorReference.trim() || null,
 
-        taxAmount: numberValue(taxAmount),
+            shippingCost: numberValue(shippingCost),
 
-        ...(notes.trim()
-          ? {
-              notes: notes.trim(),
-            }
-          : {}),
+            taxAmount: numberValue(taxAmount),
 
-        lines: enteredLines.map((line) => ({
-          ...(line.partId
+            notes: notes.trim() || null,
+
+            lines: payloadLines,
+          },
+        }).unwrap();
+
+        toast.success(`PO #${purchaseOrder.poNumber} updated.`);
+      } else {
+        await createPurchaseOrder({
+          organizationId,
+
+          vendorId,
+
+          ...(expectedAt
             ? {
-                partId: line.partId,
-              }
-            : {
-                partNumber: line.partNumber.trim(),
-
-                description: line.description.trim(),
-              }),
-
-          ...(line.repairOrderPartLineId
-            ? {
-                repairOrderPartLineId: line.repairOrderPartLineId,
+                expectedAt,
               }
             : {}),
 
-          orderedQty: Number(line.quantity),
+          ...(vendorReference.trim()
+            ? {
+                vendorReference: vendorReference.trim(),
+              }
+            : {}),
 
-          unitCost: Number(line.unitCost),
-        })),
-      }).unwrap();
+          shippingCost: numberValue(shippingCost),
 
-      toast.success("Purchase order created.");
+          taxAmount: numberValue(taxAmount),
+
+          ...(notes.trim()
+            ? {
+                notes: notes.trim(),
+              }
+            : {}),
+
+          lines: payloadLines,
+        }).unwrap();
+
+        toast.success("Purchase order created.");
+      }
 
       onClose();
     } catch {
-      toast.error("MotoDesk could not create the purchase order.");
+      toast.error(
+        editing
+          ? "MotoDesk could not update the purchase order."
+          : "MotoDesk could not create the purchase order.",
+      );
     }
   }
 
@@ -344,18 +411,23 @@ export function PurchaseOrderDialog({
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
           <div>
             <h2 className="text-lg font-bold text-zinc-900">
-              Create Purchase Order
+              {editing && purchaseOrder
+                ? `Edit Purchase Order #${purchaseOrder.poNumber}`
+                : "Create Purchase Order"}
             </h2>
 
             <p className="mt-1 text-xs text-zinc-500">
-              Enter inventory or vendor-only parts.
+              {editing
+                ? "Update this draft purchase order before it is ordered."
+                : "Enter inventory or vendor-only parts."}
             </p>
           </div>
 
           <button
             type="button"
+            disabled={isSaving}
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-lg text-zinc-500 hover:bg-zinc-100"
+            className="grid h-9 w-9 place-items-center rounded-lg text-zinc-500 hover:bg-zinc-100 disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -623,8 +695,9 @@ export function PurchaseOrderDialog({
           <div className="flex justify-end gap-2">
             <button
               type="button"
+              disabled={isSaving}
               onClick={onClose}
-              className="h-10 rounded-lg border border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
+              className="h-10 rounded-lg border border-zinc-200 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -632,7 +705,7 @@ export function PurchaseOrderDialog({
             <button
               type="button"
               disabled={isCreating}
-              onClick={() => void handleCreate()}
+              onClick={() => void handleSave()}
               className="h-10 rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
             >
               {isCreating ? "Creating..." : "Create Draft PO"}
@@ -684,6 +757,46 @@ function createInitialLine(
 
     unitCost: String(line.unitCost),
   };
+}
+
+//************************************************************** */
+
+function createDraftLineFromPurchaseOrderLine(
+  line: PurchaseOrder["lines"][number],
+): PurchaseOrderDraftLine {
+  return {
+    key: line.id,
+
+    partNumber: line.partNumber,
+
+    description: line.description,
+
+    partId: line.partId ?? "",
+
+    repairOrderPartLineId: line.repairOrderPartLineId ?? "",
+
+    quantity: String(line.orderedQty),
+
+    unitCost: String(line.unitCost),
+  };
+}
+
+//************************************************************** */
+
+function toDateInputValue(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const year = date.getFullYear();
+
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 //************************************************************** */

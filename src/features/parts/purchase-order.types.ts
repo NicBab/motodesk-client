@@ -64,6 +64,77 @@ export type PurchaseOrderLine = {
 
 //************************************************************** */
 
+export type PurchaseOrderReceiptUser = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+};
+
+//************************************************************** */
+
+export type PurchaseOrderReceiptMembership = {
+  id: string;
+  role: string;
+  user: PurchaseOrderReceiptUser;
+};
+
+//************************************************************** */
+
+export type PurchaseOrderReceiptLine = {
+  id: string;
+
+  receiptId: string;
+  purchaseOrderLineId: string;
+
+  partId: string | null;
+  repairOrderPartLineId: string | null;
+
+  partNumber: string;
+  description: string;
+
+  receivedQty: string;
+  damagedQty: string;
+  backorderedQty: string;
+
+  actualCost: string | null;
+
+  binLocation: string | null;
+  notes: string | null;
+
+  part: Part | null;
+  repairOrderPartLine: PurchaseOrderRepairOrderPartLine | null;
+
+  createdAt: string;
+  updatedAt: string;
+};
+
+//************************************************************** */
+
+export type PurchaseOrderReceipt = {
+  id: string;
+
+  organizationId: string;
+  purchaseOrderId: string;
+
+  invoiceNumber: string | null;
+  packingSlip: string | null;
+
+  notes: string | null;
+
+  receivedByMembershipId: string | null;
+  receivedByMembership: PurchaseOrderReceiptMembership | null;
+
+  receivedAt: string;
+
+  lines: PurchaseOrderReceiptLine[];
+
+  createdAt: string;
+  updatedAt: string;
+};
+
+//************************************************************** */
+
 export type PurchaseOrder = {
   id: string;
   organizationId: string;
@@ -90,6 +161,7 @@ export type PurchaseOrder = {
   vendor: Vendor;
 
   lines: PurchaseOrderLine[];
+  receipts: PurchaseOrderReceipt[];
 
   createdAt: string;
   updatedAt: string;
@@ -153,14 +225,16 @@ export type CreatePurchaseOrderInput = {
 export type UpdatePurchaseOrderData = {
   vendorId?: string;
 
-  expectedAt?: string;
+  expectedAt?: string | null;
 
-  vendorReference?: string;
+  vendorReference?: string | null;
 
   shippingCost?: number;
   taxAmount?: number;
 
-  notes?: string;
+  notes?: string | null;
+
+  lines?: CreatePurchaseOrderLineInput[];
 };
 
 //************************************************************** */
@@ -181,7 +255,7 @@ export type PurchaseOrderActionInput = {
 
 //************************************************************** */
 
-export type ReceivePurchaseOrderLineData = {
+export type ReceivePurchaseOrderReceiptLineData = {
   purchaseOrderLineId: string;
 
   quantity: number;
@@ -191,20 +265,28 @@ export type ReceivePurchaseOrderLineData = {
 
   actualCost?: number;
 
-  invoiceNumber?: string;
-  packingSlip?: string;
   binLocation?: string;
-
   notes?: string;
 };
 
 //************************************************************** */
 
-export type ReceivePurchaseOrderLineInput = {
+export type ReceivePurchaseOrderData = {
+  invoiceNumber?: string;
+  packingSlip?: string;
+
+  notes?: string;
+
+  lines: ReceivePurchaseOrderReceiptLineData[];
+};
+
+//************************************************************** */
+
+export type ReceivePurchaseOrderInput = {
   organizationId: string;
   purchaseOrderId: string;
 
-  data: ReceivePurchaseOrderLineData;
+  data: ReceivePurchaseOrderData;
 };
 
 //************************************************************** */
