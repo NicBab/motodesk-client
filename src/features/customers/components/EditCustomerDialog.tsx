@@ -16,6 +16,8 @@ import { CustomerDialogShell } from "./CustomerDialogShell";
 
 import { CustomerForm, type CustomerFormValues } from "./CustomerForm";
 
+import { CustomerPurchaseHistoryTab } from "./CustomerPurchaseHistoryTab";
+
 import { CustomerTabs, type CustomerTab } from "./CustomerTabs";
 
 import { CustomerVehiclesTab } from "./CustomerVehiclesTab";
@@ -56,6 +58,8 @@ export function EditCustomerDialog({
     return null;
   }
 
+  //************************************************************** */
+
   async function handleSubmit(
     values: CustomerFormValues | UpdateCustomerData,
   ): Promise<void> {
@@ -63,6 +67,7 @@ export function EditCustomerDialog({
       const message = "No customer was selected.";
 
       setError(message);
+
       toast.error(message);
 
       return;
@@ -73,7 +78,9 @@ export function EditCustomerDialog({
     try {
       await updateCustomer({
         organizationId,
+
         customerId: customer.id,
+
         data: values as UpdateCustomerData,
       }).unwrap();
 
@@ -84,10 +91,13 @@ export function EditCustomerDialog({
       const message = getApiErrorMessage(caughtError);
 
       setError(message);
+
       toast.error(message);
     }
   }
+
   //************************************************************** */
+
   return (
     <CustomerDialogShell
       title="Customer"
@@ -126,7 +136,10 @@ export function EditCustomerDialog({
         ) : null}
 
         {activeTab === "purchases" ? (
-          <CustomerPurchaseHistoryPlaceholder />
+          <CustomerPurchaseHistoryTab
+            organizationId={organizationId}
+            customerId={customer.id}
+          />
         ) : null}
       </div>
     </CustomerDialogShell>
@@ -134,24 +147,7 @@ export function EditCustomerDialog({
 }
 
 //************************************************************** */
-function CustomerPurchaseHistoryPlaceholder() {
-  return (
-    <div className="grid min-h-56 place-items-center p-8 text-center">
-      <div>
-        <p className="text-sm font-semibold text-zinc-700">
-          No purchase history available yet
-        </p>
 
-        <p className="mt-1 max-w-sm text-xs leading-5 text-zinc-400">
-          Over-the-counter and point-of-sale transactions will appear here once
-          the MotoDesk POS sales module is implemented.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-//************************************************************** */
 function getApiErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "status" in error) {
     const fetchError = error as FetchBaseQueryError;
@@ -172,4 +168,3 @@ function getApiErrorMessage(error: unknown): string {
 }
 
 //************************************************************** */
-

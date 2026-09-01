@@ -48,11 +48,11 @@ const navigationItems = [
     label: "Sales",
     icon: CircleDollarSign,
   },
-  {
-    href: "/inventory",
-    label: "Inventory",
-    icon: Boxes,
-  },
+  // {
+  //   href: "/inventory",
+  //   label: "Inventory",
+  //   icon: Boxes,
+  // },
 ] as const;
 
 export function AppSidebar() {
