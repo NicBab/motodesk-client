@@ -320,6 +320,7 @@ export default function EmployeesPage() {
           organizationId={organizationId}
           employees={employees}
           canManage={canManageMemberships}
+          isOwner={session?.membership?.role === "OWNER"}
         />
       ) : null}
 

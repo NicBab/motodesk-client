@@ -29,6 +29,8 @@ tagTypes: [
   "Sale",
   "Employee",
   "TimeClock",
+  "Permission",
+  "MembershipInvitation",
 ],
 
   endpoints: () => ({}),
