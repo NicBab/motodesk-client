@@ -27,6 +27,8 @@ tagTypes: [
   "PurchaseOrder",
   "PartReturn",
   "Sale",
+  "Employee",
+  "TimeClock",
 ],
 
   endpoints: () => ({}),
