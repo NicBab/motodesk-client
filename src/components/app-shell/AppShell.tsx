@@ -1,85 +1,176 @@
 "use client";
 
-import { type ReactNode, useEffect } from "react";
+import {
+  type ReactNode,
+  useEffect,
+} from "react";
 
-import { useRouter } from "next/navigation";
+import {
+  useRouter,
+} from "next/navigation";
 
 import {
   clearWorkspace,
   setActiveOrganization,
 } from "@/store/slices/workspaceSlice";
 
-import { useGetCurrentUserQuery } from "@/store/api/authApi";
+import {
+  useGetCurrentUserQuery,
+} from "@/store/api/authApi";
 
-import { useAppDispatch } from "@/store/hooks";
+import {
+  useAppDispatch,
+} from "@/store/hooks";
 
-import { OpenRepairOrdersProvider } from "@/features/repair-orders/open-repair-orders.context";
+import {
+  OpenRepairOrdersProvider,
+} from "@/features/repair-orders/open-repair-orders.context";
 
-import { AppSidebar } from "./AppSidebar";
+import {
+  AppearanceSynchronizer,
+} from "@/features/settings/components/AppearanceSynchronizer";
 
-import { AppTopbar } from "./AppTopbar";
+import {
+  AppSidebar,
+} from "./AppSidebar";
+
+import {
+  AppTopbar,
+} from "./AppTopbar";
+
+//************************************************************** */
 
 type AppShellProps = {
-  children: ReactNode;
+  children:
+    ReactNode;
 };
 
-export function AppShell({ children }: AppShellProps) {
-  const router = useRouter();
+//************************************************************** */
 
-  const dispatch = useAppDispatch();
+export function AppShell({
+  children,
+}: AppShellProps) {
+  const router =
+    useRouter();
 
-  const { data: session, isLoading, isError } = useGetCurrentUserQuery();
+  const dispatch =
+    useAppDispatch();
 
-  useEffect(() => {
-    if (!session?.membership) {
-      return;
-    }
+  const {
+    data:
+      session,
+    isLoading,
+    isError,
+  } =
+    useGetCurrentUserQuery();
 
-    dispatch(
-      setActiveOrganization({
-        id: session.membership.organizationId,
+  //************************************************************** */
 
-        name: session.membership.organizationName,
-      }),
-    );
-  }, [dispatch, session]);
+  useEffect(
+    () => {
+      if (
+        !session?.membership
+      ) {
+        return;
+      }
 
-  useEffect(() => {
-    if (!isError) {
-      return;
-    }
+      dispatch(
+        setActiveOrganization({
+          id:
+            session.membership
+              .organizationId,
 
-    dispatch(clearWorkspace());
+          name:
+            session.membership
+              .organizationName,
+        }),
+      );
+    },
+    [
+      dispatch,
+      session,
+    ],
+  );
 
-    router.replace("/login");
-  }, [dispatch, isError, router]);
+  //************************************************************** */
 
-  if (isLoading) {
+  useEffect(
+    () => {
+      if (
+        !isError
+      ) {
+        return;
+      }
+
+      dispatch(
+        clearWorkspace(),
+      );
+
+      router.replace(
+        "/login",
+      );
+    },
+    [
+      dispatch,
+      isError,
+      router,
+    ],
+  );
+
+  //************************************************************** */
+
+  if (
+    isLoading
+  ) {
     return (
-      <main className="grid min-h-screen place-items-center bg-zinc-100">
+      <main className="motodesk-app-background grid min-h-screen place-items-center">
         <div className="flex items-center gap-3 text-sm text-zinc-500">
           <span className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+
           Loading MotoDesk...
         </div>
       </main>
     );
   }
 
-  if (isError || !session) {
+  if (
+    isError ||
+    !session
+  ) {
     return null;
   }
 
+  //************************************************************** */
+
   return (
-    <OpenRepairOrdersProvider>
-      <div className="flex h-screen overflow-hidden bg-zinc-100">
-        <AppSidebar />
+    <>
+      <AppearanceSynchronizer
+        session={
+          session
+        }
+      />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <AppTopbar session={session} />
+      <OpenRepairOrdersProvider>
+        <div className="motodesk-app-background flex h-screen overflow-hidden">
+          <AppSidebar />
 
-          <main className="min-w-0 flex-1 overflow-y-auto p-6">{children}</main>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <AppTopbar
+              session={
+                session
+              }
+            />
+
+            <main className="min-w-0 flex-1 overflow-y-auto p-6">
+              {
+                children
+              }
+            </main>
+          </div>
         </div>
-      </div>
-    </OpenRepairOrdersProvider>
+      </OpenRepairOrdersProvider>
+    </>
   );
 }
+
+//************************************************************** */

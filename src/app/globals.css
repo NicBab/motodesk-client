@@ -1,26 +1,434 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ************************************************************** */
+/* MotoDesk Theme Tokens                                         */
+/*                                                              */
+/* Base44 is the functional source for the four industry themes. */
+/* Existing MotoDesk components still use Zinc/Orange utilities, */
+/* so compatibility rules below map those existing utilities to  */
+/* the active persisted theme without requiring a whole-app      */
+/* component rewrite.                                            */
+/* ************************************************************** */
+
+:root,
+[data-theme="offroad"] {
+  --background: 220 16% 96%;
+  --foreground: 220 20% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 220 20% 10%;
+
+  --muted: 220 14% 95%;
+  --muted-foreground: 220 10% 46%;
+
+  --border: 220 13% 90%;
+  --border-strong: 220 13% 80%;
+
+  --primary: 25 95% 53%;
+  --primary-hover: 25 95% 47%;
+  --primary-soft: 25 95% 95%;
+  --primary-soft-foreground: 25 95% 30%;
+  --primary-foreground: 0 0% 100%;
+
+  --sidebar-background: 220 20% 12%;
+  --sidebar-foreground: 220 10% 75%;
+  --sidebar-muted: 220 10% 46%;
+  --sidebar-hover: 220 18% 16%;
+  --sidebar-border: 220 18% 18%;
+
+  --ring: 25 95% 53%;
 }
 
+/* ************************************************************** */
+/* Dark mode                                                     */
+/* ************************************************************** */
+
+.dark {
+  --background: 220 20% 7%;
+  --foreground: 220 10% 95%;
+
+  --card: 220 20% 10%;
+  --card-foreground: 220 10% 95%;
+
+  --muted: 220 18% 14%;
+  --muted-foreground: 220 10% 58%;
+
+  --border: 220 12% 26%;
+  --border-strong: 220 12% 34%;
+
+  --primary: 25 95% 53%;
+  --primary-hover: 25 95% 58%;
+  --primary-soft: 25 80% 15%;
+  --primary-soft-foreground: 25 95% 70%;
+  --primary-foreground: 0 0% 100%;
+
+  --sidebar-background: 220 22% 8%;
+  --sidebar-foreground: 220 10% 75%;
+  --sidebar-muted: 220 10% 48%;
+  --sidebar-hover: 220 18% 12%;
+  --sidebar-border: 220 18% 14%;
+
+  --ring: 25 95% 53%;
+
+  color-scheme: dark;
+}
+
+/* ************************************************************** */
+/* Marine                                                        */
+/* ************************************************************** */
+
+[data-theme="marine"]:not(.dark) {
+  --primary: 210 75% 35%;
+  --primary-hover: 210 75% 29%;
+  --primary-soft: 210 60% 93%;
+  --primary-soft-foreground: 210 75% 25%;
+  --ring: 210 75% 40%;
+}
+
+[data-theme="marine"].dark {
+  --primary: 210 75% 55%;
+  --primary-hover: 210 75% 62%;
+  --primary-soft: 210 50% 15%;
+  --primary-soft-foreground: 210 75% 70%;
+  --ring: 210 75% 55%;
+}
+
+/* ************************************************************** */
+/* Lawn                                                          */
+/* ************************************************************** */
+
+[data-theme="lawn"]:not(.dark) {
+  --primary: 145 55% 28%;
+  --primary-hover: 145 55% 22%;
+  --primary-soft: 145 40% 92%;
+  --primary-soft-foreground: 145 55% 22%;
+  --ring: 145 50% 35%;
+}
+
+[data-theme="lawn"].dark {
+  --primary: 145 50% 48%;
+  --primary-hover: 145 50% 55%;
+  --primary-soft: 145 30% 15%;
+  --primary-soft-foreground: 145 50% 70%;
+  --ring: 145 50% 48%;
+}
+
+/* ************************************************************** */
+/* Sport                                                         */
+/* ************************************************************** */
+
+[data-theme="sport"]:not(.dark) {
+  --primary: 355 65% 42%;
+  --primary-hover: 355 65% 36%;
+  --primary-soft: 355 50% 93%;
+  --primary-soft-foreground: 355 65% 30%;
+  --ring: 355 65% 45%;
+}
+
+[data-theme="sport"].dark {
+  --primary: 355 60% 55%;
+  --primary-hover: 355 60% 62%;
+  --primary-soft: 355 35% 15%;
+  --primary-soft-foreground: 355 60% 70%;
+  --ring: 355 60% 55%;
+}
+
+/* ************************************************************** */
+/* Tailwind semantic tokens                                      */
+/* ************************************************************** */
+
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-border: hsl(var(--border));
+  --color-ring: hsl(var(--ring));
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ************************************************************** */
+/* Base document                                                 */
+/* ************************************************************** */
+
+html {
+  background:
+    hsl(var(--background));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+
+  background:
+    hsl(var(--background));
+
+  color:
+    hsl(var(--foreground));
+
+  font-family:
+    var(--font-geist-sans),
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+/* ************************************************************** */
+/* Existing MotoDesk Zinc Compatibility                          */
+/*                                                              */
+/* This makes current production components respect Dark mode    */
+/* without renaming hundreds of established utility classes.     */
+/* ************************************************************** */
+
+.dark .bg-white {
+  background-color:
+    hsl(var(--card));
+}
+
+.dark .bg-zinc-50 {
+  background-color:
+    hsl(var(--muted));
+}
+
+.dark .bg-zinc-100 {
+  background-color:
+    hsl(220 18% 14%);
+}
+
+.dark .bg-zinc-200 {
+  background-color:
+    hsl(220 15% 20%);
+}
+
+.dark .text-zinc-900,
+.dark .text-zinc-800 {
+  color:
+    hsl(var(--foreground));
+}
+
+.dark .text-zinc-700 {
+  color:
+    hsl(220 10% 84%);
+}
+
+.dark .text-zinc-600 {
+  color:
+    hsl(220 10% 72%);
+}
+
+.dark .text-zinc-500 {
+  color:
+    hsl(var(--muted-foreground));
+}
+
+.dark .text-zinc-400 {
+  color:
+    hsl(220 10% 52%);
+}
+
+.dark .text-zinc-300 {
+  color:
+    hsl(220 10% 68%);
+}
+
+.dark .border-zinc-100,
+.dark .border-zinc-200 {
+  border-color:
+    hsl(var(--border));
+}
+
+.dark .border-zinc-300 {
+  border-color:
+    hsl(var(--border-strong));
+}
+
+.dark .hover\:bg-zinc-50:hover,
+.dark .hover\:bg-zinc-100:hover {
+  background-color:
+    hsl(220 18% 16%);
+}
+
+.dark .hover\:text-zinc-900:hover,
+.dark .hover\:text-zinc-700:hover {
+  color:
+    hsl(var(--foreground));
+}
+
+/* ************************************************************** */
+/* Existing MotoDesk Brand Compatibility                         */
+/*                                                              */
+/* Existing Orange utilities become the active industry primary. */
+/* ************************************************************** */
+
+[data-theme] .bg-orange-500,
+[data-theme] .bg-orange-600 {
+  background-color:
+    hsl(var(--primary));
+}
+
+[data-theme] .hover\:bg-orange-600:hover,
+[data-theme] .hover\:bg-orange-700:hover {
+  background-color:
+    hsl(var(--primary-hover));
+}
+
+[data-theme] .bg-orange-50,
+[data-theme] .bg-orange-100 {
+  background-color:
+    hsl(var(--primary-soft));
+}
+
+[data-theme] .text-orange-400,
+[data-theme] .text-orange-500,
+[data-theme] .text-orange-600,
+[data-theme] .text-orange-700,
+[data-theme] .text-orange-900 {
+  color:
+    hsl(var(--primary));
+}
+
+[data-theme] .border-orange-200,
+[data-theme] .border-orange-500 {
+  border-color:
+    hsl(var(--primary));
+}
+
+[data-theme] .ring-orange-200,
+[data-theme] .ring-orange-500\/10,
+[data-theme] .ring-orange-500\/50 {
+  --tw-ring-color:
+    hsl(var(--ring) / 0.35);
+}
+
+[data-theme] .hover\:bg-orange-50:hover,
+[data-theme] .hover\:bg-orange-100:hover {
+  background-color:
+    hsl(var(--primary-soft));
+}
+
+/* ************************************************************** */
+/* App Shell                                                     */
+/* ************************************************************** */
+
+[data-theme] .motodesk-app-background {
+  background-color:
+    hsl(var(--background));
+}
+
+[data-theme] .motodesk-sidebar {
+  background-color:
+    hsl(var(--sidebar-background));
+
+  color:
+    hsl(var(--sidebar-foreground));
+
+  border-color:
+    hsl(var(--sidebar-border));
+}
+
+[data-theme] .motodesk-sidebar-hover:hover {
+  background-color:
+    hsl(var(--sidebar-hover));
+}
+
+[data-theme] .motodesk-sidebar-muted {
+  color:
+    hsl(var(--sidebar-muted));
+}
+
+/* ************************************************************** */
+/* Form controls                                                 */
+/* ************************************************************** */
+
+.dark input,
+.dark select,
+.dark textarea {
+  color:
+    hsl(var(--foreground));
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color:
+    hsl(var(--muted-foreground));
+}
+
+/* Native selects need an explicit dark surface in Safari/Firefox. */
+
+.dark select {
+  color-scheme:
+    dark;
+}
+
+/* ************************************************************** */
+/* Scrollbar helper                                              */
+/* ************************************************************** */
+
+.scrollbar-none {
+  scrollbar-width:
+    none;
+
+  -ms-overflow-style:
+    none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display:
+    none;
+}
+
+/* ************************************************************** */
+/* Print                                                         */
+/* ************************************************************** */
+
+@media print {
+  .no-print {
+    display:
+      none !important;
+  }
+
+  .print-only {
+    display:
+      block !important;
+  }
+
+  body.printing-receipt * {
+    visibility:
+      hidden;
+  }
+
+  body.printing-receipt .printable-receipt,
+  body.printing-receipt .printable-receipt * {
+    visibility:
+      visible;
+  }
+
+  body.printing-receipt .printable-receipt {
+    position:
+      absolute;
+
+    left:
+      0;
+
+    top:
+      0;
+
+    width:
+      100%;
+
+    max-width:
+      400px;
+
+    padding:
+      20px;
+  }
 }

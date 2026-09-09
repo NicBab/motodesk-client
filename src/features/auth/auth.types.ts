@@ -8,7 +8,7 @@ export type MembershipRole =
   | "TECHNICIAN"
   | "PARTS";
 
-  //************************************************************** */
+//************************************************************** */
 
 export type MembershipStatus =
   | "INVITED"
@@ -17,12 +17,30 @@ export type MembershipStatus =
 
 //************************************************************** */
 
+export type DisplayMode =
+  | "LIGHT"
+  | "DARK"
+  | "SYSTEM";
+
+//************************************************************** */
+
 export type AuthenticatedUser = {
   id: string;
+
   email: string;
+
   firstName: string;
+
   lastName: string;
+
   phone: string | null;
+
+  jobTitle: string | null;
+
+  preferredTimezone: string;
+
+  displayMode: DisplayMode;
+
   isActive: boolean;
 };
 
@@ -30,9 +48,13 @@ export type AuthenticatedUser = {
 
 export type AuthenticatedMembership = {
   id: string;
+
   organizationId: string;
+
   organizationName: string;
+
   role: MembershipRole;
+
   status: MembershipStatus;
 };
 
@@ -40,9 +62,13 @@ export type AuthenticatedMembership = {
 
 export type AuthSession = {
   user: AuthenticatedUser;
+
   membership: AuthenticatedMembership | null;
+
   permissions: string[];
+
   accessTokenExpiresAt?: string;
+
   refreshTokenExpiresAt?: string;
 };
 
@@ -50,15 +76,22 @@ export type AuthSession = {
 
 export type RegisterInput = {
   email: string;
+
   password: string;
+
   firstName: string;
+
   lastName: string;
+
   phone?: string;
 
   organization: {
     name: string;
+
     slug: string;
+
     email?: string;
+
     phone?: string;
   };
 };
@@ -67,7 +100,24 @@ export type RegisterInput = {
 
 export type LoginInput = {
   email: string;
+
   password: string;
+};
+
+//************************************************************** */
+
+export type UpdateProfileInput = {
+  firstName?: string;
+
+  lastName?: string;
+
+  phone?: string | null;
+
+  jobTitle?: string | null;
+
+  preferredTimezone?: string;
+
+  displayMode?: DisplayMode;
 };
 
 //************************************************************** */
