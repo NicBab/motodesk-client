@@ -5,12 +5,20 @@ import {
 } from "react";
 
 import {
-  useGetCurrentUserQuery,
-} from "@/store/api/authApi";
+  SettingsAppearance,
+} from "@/features/settings/components/SettingsAppearance";
 
 import {
   SettingsProfile,
 } from "@/features/settings/components/SettingsProfile";
+
+import {
+  SettingsSecurity,
+} from "@/features/settings/components/SettingsSecurity";
+
+import {
+  useGetCurrentUserQuery,
+} from "@/store/api/authApi";
 
 //************************************************************** */
 
@@ -23,42 +31,24 @@ type SettingsTab =
 //************************************************************** */
 
 const SETTINGS_TABS: Array<{
-  id:
-    SettingsTab;
-
-  label:
-    string;
+  id: SettingsTab;
+  label: string;
 }> = [
   {
-    id:
-      "profile",
-
-    label:
-      "Profile",
+    id: "profile",
+    label: "Profile",
   },
-
   {
-    id:
-      "billing",
-
-    label:
-      "Billing",
+    id: "billing",
+    label: "Billing",
   },
-
   {
-    id:
-      "appearance",
-
-    label:
-      "Appearance",
+    id: "appearance",
+    label: "Appearance",
   },
-
   {
-    id:
-      "security",
-
-    label:
-      "Security",
+    id: "security",
+    label: "Security",
   },
 ];
 
@@ -74,8 +64,7 @@ export default function SettingsPage() {
     );
 
   const {
-    data:
-      session,
+    data: session,
     isLoading,
     isError,
     refetch,
@@ -169,27 +158,35 @@ export default function SettingsPage() {
           ) : null}
 
           {activeTab ===
-          "billing" ? (
-            <SettingsPlaceholder
-              title="Billing"
-              description="Billing configuration will be added after Profile, Appearance, and Security are complete."
-            />
-          ) : null}
-
-          {activeTab ===
           "appearance" ? (
-            <SettingsPlaceholder
-              title="Appearance"
-              description="Display mode and organization theme controls are next."
-            />
+            session.membership ? (
+              <SettingsAppearance
+                user={
+                  session.user
+                }
+                organizationId={
+                  session.membership
+                    .organizationId
+                }
+                permissions={
+                  session.permissions
+                }
+              />
+            ) : (
+              <SettingsState>
+                An organization membership is required to manage Appearance.
+              </SettingsState>
+            )
           ) : null}
 
           {activeTab ===
           "security" ? (
-            <SettingsPlaceholder
-              title="Security"
-              description="Password and session controls will be added after Appearance."
-            />
+            <SettingsSecurity />
+          ) : null}
+
+          {activeTab ===
+          "billing" ? (
+            <SettingsBillingUnavailable />
           ) : null}
         </>
       )}
@@ -247,28 +244,17 @@ function SettingsError({
 
 //************************************************************** */
 
-function SettingsPlaceholder({
-  title,
-  description,
-}: {
-  title:
-    string;
-
-  description:
-    string;
-}) {
+function SettingsBillingUnavailable() {
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
       <h2 className="text-sm font-semibold text-zinc-900">
-        {
-          title
-        }
+        Billing
       </h2>
 
-      <p className="mt-2 text-sm text-zinc-500">
-        {
-          description
-        }
+      <p className="mt-2 text-sm leading-6 text-zinc-500">
+        Subscription billing is not configured for this MotoDesk environment yet.
+        Plan management, payment methods, invoices, and subscription changes will
+        appear here once the production billing provider is connected.
       </p>
     </section>
   );
