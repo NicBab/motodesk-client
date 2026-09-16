@@ -43,19 +43,43 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
 
-      transformResponse: (
-        response: ApiSuccessResponse<AuthSession>,
-      ) => response.data,
+      transformResponse: (response: ApiSuccessResponse<AuthSession>) =>
+        response.data,
 
       providesTags: ["Auth"],
     }),
 
     //************************************************************** */
 
-    updateProfile: builder.mutation<
-      UpdateProfileResponse,
-      UpdateProfileInput
-    >({
+    refreshSession: builder.mutation<AuthSession, void>({
+      query: () => ({
+        url: "/auth/refresh",
+        method: "POST",
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<AuthSession>) =>
+        response.data,
+
+      async onQueryStarted(_argument, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            authApi.util.updateQueryData(
+              "getCurrentUser",
+              undefined,
+              () => data,
+            ),
+          );
+        } catch {
+          // The session-expiration manager handles refresh failure.
+        }
+      },
+    }),
+
+    //************************************************************** */
+
+    updateProfile: builder.mutation<UpdateProfileResponse, UpdateProfileInput>({
       query: (body) => ({
         url: "/auth/profile",
         method: "PATCH",
@@ -75,6 +99,7 @@ export const authApi = baseApi.injectEndpoints({
 
 export const {
   useGetCurrentUserQuery,
+  useRefreshSessionMutation,
   useUpdateProfileMutation,
 } = authApi;
 

@@ -38,6 +38,10 @@ import {
   AppTopbar,
 } from "./AppTopbar";
 
+import {
+  SessionExpirationManager,
+} from "@/features/auth/components/SessionExpirationManager";
+
 //************************************************************** */
 
 type AppShellProps = {
@@ -149,6 +153,12 @@ export function AppShell({
           session
         }
       />
+
+      <SessionExpirationManager
+  session={
+    session
+  }
+/>
 
       <OpenRepairOrdersProvider>
         <div className="motodesk-app-background flex h-screen overflow-hidden">
