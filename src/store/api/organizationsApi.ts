@@ -18,17 +18,11 @@ type ApiListResponse<T> = {
 
 //************************************************************** */
 
-export type ApplicationTheme =
-  | "offroad"
-  | "marine"
-  | "lawn"
-  | "sport";
+export type ApplicationTheme = "offroad" | "marine" | "lawn" | "sport";
 
 //************************************************************** */
 
-export type OrganizationStatus =
-  | "ACTIVE"
-  | "ARCHIVED";
+export type OrganizationStatus = "ACTIVE" | "ARCHIVED";
 
 //************************************************************** */
 
@@ -57,6 +51,18 @@ export type OrganizationMembership = {
 
 //************************************************************** */
 
+export type CreateOrganizationInput = {
+  name: string;
+
+  slug: string;
+
+  email?: string;
+
+  phone?: string;
+};
+
+//************************************************************** */
+
 export type UpdateOrganizationInput = {
   organizationId: string;
 
@@ -68,121 +74,94 @@ export type UpdateOrganizationInput = {
 
 //************************************************************** */
 
-export const organizationsApi =
-  baseApi.injectEndpoints({
-    endpoints: (builder) => ({
-      getMyOrganizations:
-        builder.query<
-          OrganizationMembership[],
-          void
-        >({
-          query: () => ({
-            url: "/organizations/me",
-            method: "GET",
-          }),
+export const organizationsApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    createOrganization: builder.mutation<Organization, CreateOrganizationInput>(
+      {
+        query: (body) => ({
+          url: "/organizations",
 
-          transformResponse: (
-            response:
-              ApiListResponse<OrganizationMembership>,
-          ) =>
-            response.data,
+          method: "POST",
 
-          providesTags: [
-            "Organization",
-          ],
+          body,
         }),
 
-      //************************************************************** */
+        transformResponse: (response: ApiSuccessResponse<Organization>) =>
+          response.data,
 
-      getOrganization:
-        builder.query<
-          Organization,
-          string
-        >({
-          query: (
-            organizationId,
-          ) => ({
-            url:
-              `/organizations/${organizationId}`,
+        invalidatesTags: ["Organization"],
+      },
+    ),
 
-            method:
-              "GET",
-          }),
+    //************************************************************** */
+    getMyOrganizations: builder.query<OrganizationMembership[], void>({
+      query: () => ({
+        url: "/organizations/me",
+        method: "GET",
+      }),
 
-          transformResponse: (
-            response:
-              ApiSuccessResponse<Organization>,
-          ) =>
-            response.data,
+      transformResponse: (response: ApiListResponse<OrganizationMembership>) =>
+        response.data,
 
-          providesTags: (
-            _result,
-            _error,
-            organizationId,
-          ) => [
-            {
-              type:
-                "Organization",
-
-              id:
-                organizationId,
-            },
-          ],
-        }),
-
-      //************************************************************** */
-
-      updateOrganization:
-        builder.mutation<
-          Organization,
-          UpdateOrganizationInput
-        >({
-          query: ({
-            organizationId,
-            ...body
-          }) => ({
-            url:
-              `/organizations/${organizationId}`,
-
-            method:
-              "PATCH",
-
-            body,
-          }),
-
-          transformResponse: (
-            response:
-              ApiSuccessResponse<Organization>,
-          ) =>
-            response.data,
-
-          invalidatesTags: (
-            _result,
-            _error,
-            {
-              organizationId,
-            },
-          ) => [
-            "Organization",
-
-            {
-              type:
-                "Organization",
-
-              id:
-                organizationId,
-            },
-          ],
-        }),
+      providesTags: ["Organization"],
     }),
 
-    overrideExisting:
-      false,
-  });
+    //************************************************************** */
+
+    getOrganization: builder.query<Organization, string>({
+      query: (organizationId) => ({
+        url: `/organizations/${organizationId}`,
+
+        method: "GET",
+      }),
+
+      transformResponse: (response: ApiSuccessResponse<Organization>) =>
+        response.data,
+
+      providesTags: (_result, _error, organizationId) => [
+        {
+          type: "Organization",
+
+          id: organizationId,
+        },
+      ],
+    }),
+
+    //************************************************************** */
+
+    updateOrganization: builder.mutation<Organization, UpdateOrganizationInput>(
+      {
+        query: ({ organizationId, ...body }) => ({
+          url: `/organizations/${organizationId}`,
+
+          method: "PATCH",
+
+          body,
+        }),
+
+        transformResponse: (response: ApiSuccessResponse<Organization>) =>
+          response.data,
+
+        invalidatesTags: (_result, _error, { organizationId }) => [
+          "Organization",
+
+          {
+            type: "Organization",
+
+            id: organizationId,
+          },
+        ],
+      },
+    ),
+  }),
+
+  overrideExisting: false,
+});
 
 //************************************************************** */
 
 export const {
+  useCreateOrganizationMutation,
   useGetMyOrganizationsQuery,
   useGetOrganizationQuery,
   useUpdateOrganizationMutation,
