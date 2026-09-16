@@ -16,6 +16,8 @@ import { baseApi } from "@/store/api/baseApi";
 
 import { Eye, EyeOff } from "lucide-react";
 
+import { GoogleOAuthButton } from "./GoogleOAuthButton";
+
 //************************************************************** */
 
 const inputClasses =
@@ -65,7 +67,7 @@ export function LoginForm() {
     }
   }
 
-//************************************************************** */
+  //************************************************************** */
 
   return (
     <form
@@ -136,6 +138,19 @@ export function LoginForm() {
         >
           {isSubmitting ? "Signing in..." : "Sign in to MotoDesk"}
         </button>
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-zinc-200" />
+          </div>
+
+          <div className="relative flex justify-center">
+            <span className="bg-white px-3 text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Or
+            </span>
+          </div>
+        </div>
+
+        <GoogleOAuthButton />
       </div>
     </form>
   );
