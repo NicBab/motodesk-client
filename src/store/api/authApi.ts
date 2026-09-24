@@ -35,6 +35,34 @@ type UpdateProfileResponse = {
 
 //************************************************************** */
 
+export type RequestPasswordResetInput = {
+  email: string;
+};
+
+//************************************************************** */
+
+export type RequestPasswordResetResponse = {
+  message: string;
+};
+
+//************************************************************** */
+
+export type ResetPasswordInput = {
+  token: string;
+
+  password: string;
+
+  confirmPassword: string;
+};
+
+//************************************************************** */
+
+export type ResetPasswordResponse = {
+  message: string;
+};
+
+//************************************************************** */
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCurrentUser: builder.query<AuthSession, void>({
@@ -92,6 +120,36 @@ export const authApi = baseApi.injectEndpoints({
 
       invalidatesTags: ["Auth"],
     }),
+    //************************************************************** */
+
+    requestPasswordReset: builder.mutation<
+      RequestPasswordResetResponse,
+      RequestPasswordResetInput
+    >({
+      query: (body) => ({
+        url: "/auth/request-password-reset",
+        method: "POST",
+        body,
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<RequestPasswordResetResponse>,
+      ) => response.data,
+    }),
+
+    //************************************************************** */
+
+    resetPassword: builder.mutation<ResetPasswordResponse, ResetPasswordInput>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<ResetPasswordResponse>,
+      ) => response.data,
+    }),
   }),
 });
 
@@ -101,6 +159,8 @@ export const {
   useGetCurrentUserQuery,
   useRefreshSessionMutation,
   useUpdateProfileMutation,
+  useRequestPasswordResetMutation,
+  useResetPasswordMutation,
 } = authApi;
 
 //************************************************************** */

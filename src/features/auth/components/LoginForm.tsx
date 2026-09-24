@@ -2,6 +2,8 @@
 
 "use client";
 
+import Link from "next/link";
+
 import { type FormEvent, useState } from "react";
 
 import { useRouter } from "next/navigation";
@@ -101,8 +103,17 @@ export function LoginForm() {
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-xs font-semibold text-zinc-700">
-            Password
+          <span className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-700">
+              Password
+            </span>
+
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-orange-600 transition hover:text-orange-700 hover:underline"
+            >
+              Forgot password?
+            </Link>
           </span>
 
           <div className="relative">
