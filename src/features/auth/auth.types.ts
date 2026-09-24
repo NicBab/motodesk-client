@@ -10,17 +10,11 @@ export type MembershipRole =
 
 //************************************************************** */
 
-export type MembershipStatus =
-  | "INVITED"
-  | "ACTIVE"
-  | "SUSPENDED";
+export type MembershipStatus = "INVITED" | "ACTIVE" | "SUSPENDED";
 
 //************************************************************** */
 
-export type DisplayMode =
-  | "LIGHT"
-  | "DARK"
-  | "SYSTEM";
+export type DisplayMode = "LIGHT" | "DARK" | "SYSTEM";
 
 //************************************************************** */
 
@@ -28,6 +22,7 @@ export type AuthenticatedUser = {
   id: string;
 
   email: string;
+  emailVerifiedAt: string | null;
 
   firstName: string;
 

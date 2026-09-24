@@ -37,37 +37,75 @@ export function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+async function handleSubmit(
+  event: FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
 
-    setError(null);
-    setIsSubmitting(true);
+  setError(null);
 
-    const formData = new FormData(event.currentTarget);
+  setIsSubmitting(true);
 
-    try {
+  const formData =
+    new FormData(event.currentTarget);
+
+  const email =
+    String(
+      formData.get("email") ?? "",
+    ).trim();
+
+  try {
+    const result =
       await login({
-        email: String(formData.get("email") ?? "").trim(),
+        email,
 
-        password: String(formData.get("password") ?? ""),
+        password:
+          String(
+            formData.get("password") ?? "",
+          ),
       });
 
-      // Clear any cached /auth/me 401 or stale session data
-      // before entering the authenticated application.
-      dispatch(baseApi.util.resetApiState());
+    //************************************************************** */
+    // Password-authenticated users must verify ownership of their
+    // email address before entering the MotoDesk application.
 
-      router.replace("/dashboard");
-      router.refresh();
-    } catch (caughtError) {
-      setError(
-        caughtError instanceof ApiError
-          ? caughtError.message
-          : "MotoDesk could not sign you in. Please try again.",
+    if (!result.user.emailVerifiedAt) {
+      dispatch(
+        baseApi.util.resetApiState(),
       );
-    } finally {
-      setIsSubmitting(false);
+
+      router.replace(
+        `/verify-email?email=${encodeURIComponent(
+          email.toLowerCase(),
+        )}`,
+      );
+
+      return;
     }
+
+    //************************************************************** */
+    // Clear any cached /auth/me 401 or stale session data before
+    // entering the authenticated application.
+
+    dispatch(
+      baseApi.util.resetApiState(),
+    );
+
+    router.replace(
+      "/dashboard",
+    );
+
+    router.refresh();
+  } catch (caughtError) {
+    setError(
+      caughtError instanceof ApiError
+        ? caughtError.message
+        : "MotoDesk could not sign you in. Please try again.",
+    );
+  } finally {
+    setIsSubmitting(false);
   }
+}
 
   //************************************************************** */
 

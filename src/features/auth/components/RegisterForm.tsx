@@ -46,6 +46,7 @@ export function RegisterForm({ plan }: RegisterFormProps) {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
 
     const password = String(formData.get("password") ?? "");
 
@@ -84,7 +85,7 @@ export function RegisterForm({ plan }: RegisterFormProps) {
 
         lastName: String(formData.get("lastName") ?? "").trim(),
 
-        email: String(formData.get("email") ?? "").trim(),
+        email,
 
         phone: String(formData.get("phone") ?? "").trim() || undefined,
 
@@ -108,8 +109,10 @@ export function RegisterForm({ plan }: RegisterFormProps) {
 
       dispatch(baseApi.util.resetApiState());
 
-      router.replace("/dashboard");
-      router.refresh();
+      router.replace(
+        `/verify-email?email=${encodeURIComponent(email.toLowerCase())}`,
+      );
+      // router.refresh();
     } catch (caughtError) {
       setError(
         caughtError instanceof ApiError
