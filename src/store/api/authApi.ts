@@ -63,6 +63,36 @@ export type ResetPasswordResponse = {
 
 //************************************************************** */
 
+export type ActiveSession = {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
+};
+
+//************************************************************** */
+
+export type ActiveSessionsResponse = {
+  sessions: ActiveSession[];
+};
+
+//************************************************************** */
+
+export type RevokeSessionResponse = {
+  message: string;
+};
+
+//************************************************************** */
+
+export type RevokeOtherSessionsResponse = {
+  revokedSessionCount: number;
+};
+
+//************************************************************** */
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCurrentUser: builder.query<AuthSession, void>({
@@ -150,6 +180,51 @@ export const authApi = baseApi.injectEndpoints({
         response: ApiSuccessResponse<ResetPasswordResponse>,
       ) => response.data,
     }),
+    //************************************************************** */
+
+    getActiveSessions: builder.query<ActiveSession[], void>({
+      query: () => ({
+        url: "/auth/sessions",
+        method: "GET",
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<ActiveSessionsResponse>,
+      ) => response.data.sessions,
+
+      providesTags: ["Auth"],
+    }),
+
+    //************************************************************** */
+
+    revokeSession: builder.mutation<RevokeSessionResponse, string>({
+      query: (sessionId) => ({
+        url: `/auth/sessions/${encodeURIComponent(sessionId)}`,
+
+        method: "DELETE",
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<RevokeSessionResponse>,
+      ) => response.data,
+
+      invalidatesTags: ["Auth"],
+    }),
+
+    //************************************************************** */
+
+    revokeOtherSessions: builder.mutation<RevokeOtherSessionsResponse, void>({
+      query: () => ({
+        url: "/auth/sessions/others",
+        method: "DELETE",
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<RevokeOtherSessionsResponse>,
+      ) => response.data,
+
+      invalidatesTags: ["Auth"],
+    }),
   }),
 });
 
@@ -161,6 +236,9 @@ export const {
   useUpdateProfileMutation,
   useRequestPasswordResetMutation,
   useResetPasswordMutation,
+  useGetActiveSessionsQuery,
+  useRevokeSessionMutation,
+  useRevokeOtherSessionsMutation,
 } = authApi;
 
 //************************************************************** */
