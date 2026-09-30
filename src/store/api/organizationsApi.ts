@@ -33,6 +33,10 @@ export type Organization = {
   email: string | null;
   phone: string | null;
   applicationTheme: ApplicationTheme | "default";
+
+  taxRate: string;
+  shopSuppliesRate: string;
+
   status: OrganizationStatus;
   createdAt: string;
   updatedAt: string;
@@ -70,6 +74,9 @@ export type UpdateOrganizationInput = {
   email?: string;
   phone?: string;
   applicationTheme?: ApplicationTheme;
+
+  taxRate?: number;
+  shopSuppliesRate?: number;
 };
 
 //************************************************************** */

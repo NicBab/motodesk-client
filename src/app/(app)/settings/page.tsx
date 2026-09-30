@@ -20,10 +20,15 @@ import {
   useGetCurrentUserQuery,
 } from "@/store/api/authApi";
 
+import {
+  CompanySettings,
+} from "@/features/settings/components/CompanySettings";
+
 //************************************************************** */
 
 type SettingsTab =
   | "profile"
+  | "company"
   | "billing"
   | "appearance"
   | "security";
@@ -37,6 +42,10 @@ const SETTINGS_TABS: Array<{
   {
     id: "profile",
     label: "Profile",
+  },
+  {
+  id: "company",
+  label: "Company Settings",
   },
   {
     id: "billing",
@@ -156,6 +165,25 @@ export default function SettingsPage() {
               }
             />
           ) : null}
+
+          {activeTab ===
+"company" ? (
+  session.membership ? (
+    <CompanySettings
+      organizationId={
+        session.membership
+          .organizationId
+      }
+      permissions={
+        session.permissions
+      }
+    />
+  ) : (
+    <SettingsState>
+      An organization membership is required to manage Company Settings.
+    </SettingsState>
+  )
+) : null}
 
           {activeTab ===
           "appearance" ? (
