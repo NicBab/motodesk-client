@@ -2,38 +2,26 @@
 
 import { type ReactNode, useState } from "react";
 
-import {
-  SettingsAppearance,
-} from "@/features/settings/components/SettingsAppearance";
+import { SettingsAppearance } from "@/features/settings/components/SettingsAppearance";
 
-import {
-  SettingsProfile,
-} from "@/features/settings/components/SettingsProfile";
+import { SettingsProfile } from "@/features/settings/components/SettingsProfile";
 
-import {
-  SettingsSecurity,
-} from "@/features/settings/components/SettingsSecurity";
+import { SettingsSecurity } from "@/features/settings/components/SettingsSecurity";
 
-import {
-  CompanySettings,
-} from "@/features/settings/components/CompanySettings";
+import { CompanySettings } from "@/features/settings/components/CompanySettings";
 
-import {
-  SettingsAuditLogs,
-} from "@/features/settings/components/SettingsAuditLogs";
+import { SettingsAuditLogs } from "@/features/settings/components/SettingsAuditLogs";
 
-import {
-  useGetCurrentUserQuery,
-} from "@/store/api/authApi";
+import { useGetCurrentUserQuery } from "@/store/api/authApi";
 
 //************************************************************** */
 
 type SettingsTab =
   | "profile"
-  | "company"
-  | "billing"
   | "appearance"
   | "security"
+  | "company"
+  | "billing"
   | "audit";
 
 //************************************************************** */
@@ -47,20 +35,20 @@ const SETTINGS_TABS: Array<{
     label: "Profile",
   },
   {
-    id: "company",
-    label: "Company Settings",
-  },
-  {
-    id: "billing",
-    label: "Billing",
-  },
-  {
     id: "appearance",
     label: "Appearance",
   },
   {
     id: "security",
     label: "Security",
+  },
+  {
+    id: "company",
+    label: "Company Settings",
+  },
+  {
+    id: "billing",
+    label: "Billing",
   },
   {
     id: "audit",
@@ -71,8 +59,7 @@ const SETTINGS_TABS: Array<{
 //************************************************************** */
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] =
-    useState<SettingsTab>("profile");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
   const {
     data: session,
@@ -82,8 +69,7 @@ export default function SettingsPage() {
   } = useGetCurrentUserQuery();
 
   const canViewAuditLogs =
-    !!session?.membership &&
-    session.permissions.includes("audit:view");
+    !!session?.membership && session.permissions.includes("audit:view");
 
   const visibleTabs = SETTINGS_TABS.filter(
     (tab) => tab.id !== "audit" || canViewAuditLogs,
@@ -139,32 +125,15 @@ export default function SettingsPage() {
       </nav>
 
       {isLoading ? (
-        <SettingsState>
-          Loading settings...
-        </SettingsState>
+        <SettingsState>Loading settings...</SettingsState>
       ) : isError ? (
         <SettingsError onRetry={() => void refetch()} />
       ) : !session ? (
-        <SettingsState>
-          MotoDesk could not load your account.
-        </SettingsState>
+        <SettingsState>MotoDesk could not load your account.</SettingsState>
       ) : (
         <>
           {activeTab === "profile" ? (
             <SettingsProfile user={session.user} />
-          ) : null}
-
-          {activeTab === "company" ? (
-            session.membership ? (
-              <CompanySettings
-                organizationId={session.membership.organizationId}
-                permissions={session.permissions}
-              />
-            ) : (
-              <SettingsState>
-                An organization membership is required to manage Company Settings.
-              </SettingsState>
-            )
           ) : null}
 
           {activeTab === "appearance" ? (
@@ -181,13 +150,23 @@ export default function SettingsPage() {
             )
           ) : null}
 
-          {activeTab === "security" ? (
-            <SettingsSecurity />
+          {activeTab === "security" ? <SettingsSecurity /> : null}
+
+          {activeTab === "company" ? (
+            session.membership ? (
+              <CompanySettings
+                organizationId={session.membership.organizationId}
+                permissions={session.permissions}
+              />
+            ) : (
+              <SettingsState>
+                An organization membership is required to manage Company
+                Settings.
+              </SettingsState>
+            )
           ) : null}
 
-          {activeTab === "billing" ? (
-            <SettingsBillingUnavailable />
-          ) : null}
+          {activeTab === "billing" ? <SettingsBillingUnavailable /> : null}
 
           {activeTab === "audit" ? (
             session.membership ? (
@@ -209,27 +188,17 @@ export default function SettingsPage() {
 
 //************************************************************** */
 
-function SettingsState({
-  children,
-}: {
-  children: ReactNode;
-}) {
+function SettingsState({ children }: { children: ReactNode }) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-      <p className="text-sm text-zinc-500">
-        {children}
-      </p>
+      <p className="text-sm text-zinc-500">{children}</p>
     </section>
   );
 }
 
 //************************************************************** */
 
-function SettingsError({
-  onRetry,
-}: {
-  onRetry: () => void;
-}) {
+function SettingsError({ onRetry }: { onRetry: () => void }) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-red-200 bg-white p-8 text-center shadow-sm">
       <div>
@@ -254,14 +223,13 @@ function SettingsError({
 function SettingsBillingUnavailable() {
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="text-sm font-semibold text-zinc-900">
-        Billing
-      </h2>
+      <h2 className="text-sm font-semibold text-zinc-900">Billing</h2>
 
       <p className="mt-2 text-sm leading-6 text-zinc-500">
-        Subscription billing is not configured for this MotoDesk environment yet.
-        Plan management, payment methods, invoices, and subscription changes will
-        appear here once the production billing provider is connected.
+        Subscription billing is not configured for this MotoDesk environment
+        yet. Plan management, payment methods, invoices, and subscription
+        changes will appear here once the production billing provider is
+        connected.
       </p>
     </section>
   );
