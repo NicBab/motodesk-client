@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  useState,
-} from "react";
+import { type ReactNode, useState } from "react";
 
 import {
   SettingsAppearance,
@@ -17,12 +15,16 @@ import {
 } from "@/features/settings/components/SettingsSecurity";
 
 import {
-  useGetCurrentUserQuery,
-} from "@/store/api/authApi";
-
-import {
   CompanySettings,
 } from "@/features/settings/components/CompanySettings";
+
+import {
+  SettingsAuditLogs,
+} from "@/features/settings/components/SettingsAuditLogs";
+
+import {
+  useGetCurrentUserQuery,
+} from "@/store/api/authApi";
 
 //************************************************************** */
 
@@ -31,7 +33,8 @@ type SettingsTab =
   | "company"
   | "billing"
   | "appearance"
-  | "security";
+  | "security"
+  | "audit";
 
 //************************************************************** */
 
@@ -44,8 +47,8 @@ const SETTINGS_TABS: Array<{
     label: "Profile",
   },
   {
-  id: "company",
-  label: "Company Settings",
+    id: "company",
+    label: "Company Settings",
   },
   {
     id: "billing",
@@ -59,38 +62,44 @@ const SETTINGS_TABS: Array<{
     id: "security",
     label: "Security",
   },
+  {
+    id: "audit",
+    label: "Audit Logs",
+  },
 ];
 
 //************************************************************** */
 
 export default function SettingsPage() {
-  const [
-    activeTab,
-    setActiveTab,
-  ] =
-    useState<SettingsTab>(
-      "profile",
-    );
+  const [activeTab, setActiveTab] =
+    useState<SettingsTab>("profile");
 
   const {
     data: session,
     isLoading,
     isError,
     refetch,
-  } =
-    useGetCurrentUserQuery();
+  } = useGetCurrentUserQuery();
+
+  const canViewAuditLogs =
+    !!session?.membership &&
+    session.permissions.includes("audit:view");
+
+  const visibleTabs = SETTINGS_TABS.filter(
+    (tab) => tab.id !== "audit" || canViewAuditLogs,
+  );
+
+  const widthClass =
+    activeTab === "audit"
+      ? "max-w-7xl"
+      : activeTab === "billing"
+        ? "max-w-5xl"
+        : "max-w-2xl";
 
   //************************************************************** */
 
   return (
-    <div
-      className={
-        activeTab ===
-        "billing"
-          ? "max-w-5xl space-y-6"
-          : "max-w-2xl space-y-6"
-      }
-    >
+    <div className={`${widthClass} space-y-6`}>
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
           Settings
@@ -101,43 +110,31 @@ export default function SettingsPage() {
         </p>
       </header>
 
-      <nav className="w-full overflow-x-auto border-b border-zinc-200">
+      <nav
+        aria-label="Settings sections"
+        className="w-full overflow-x-auto border-b border-zinc-200"
+      >
         <div className="flex min-w-max gap-1">
-          {SETTINGS_TABS.map(
-            (
-              tab,
-            ) => {
-              const selected =
-                activeTab ===
-                tab.id;
+          {visibleTabs.map((tab) => {
+            const selected = activeTab === tab.id;
 
-              return (
-                <button
-                  key={
-                    tab.id
-                  }
-                  type="button"
-                  onClick={() =>
-                    setActiveTab(
-                      tab.id,
-                    )
-                  }
-                  className={[
-                    "-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
-                    selected
-                      ? "border-orange-500 text-orange-600"
-                      : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-900",
-                  ].join(
-                    " ",
-                  )}
-                >
-                  {
-                    tab.label
-                  }
-                </button>
-              );
-            },
-          )}
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                aria-current={selected ? "page" : undefined}
+                onClick={() => setActiveTab(tab.id)}
+                className={[
+                  "-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
+                  selected
+                    ? "border-orange-500 text-orange-600"
+                    : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-900",
+                ].join(" ")}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </nav>
 
@@ -146,59 +143,36 @@ export default function SettingsPage() {
           Loading settings...
         </SettingsState>
       ) : isError ? (
-        <SettingsError
-          onRetry={
-            refetch
-          }
-        />
+        <SettingsError onRetry={() => void refetch()} />
       ) : !session ? (
         <SettingsState>
           MotoDesk could not load your account.
         </SettingsState>
       ) : (
         <>
-          {activeTab ===
-          "profile" ? (
-            <SettingsProfile
-              user={
-                session.user
-              }
-            />
+          {activeTab === "profile" ? (
+            <SettingsProfile user={session.user} />
           ) : null}
 
-          {activeTab ===
-"company" ? (
-  session.membership ? (
-    <CompanySettings
-      organizationId={
-        session.membership
-          .organizationId
-      }
-      permissions={
-        session.permissions
-      }
-    />
-  ) : (
-    <SettingsState>
-      An organization membership is required to manage Company Settings.
-    </SettingsState>
-  )
-) : null}
+          {activeTab === "company" ? (
+            session.membership ? (
+              <CompanySettings
+                organizationId={session.membership.organizationId}
+                permissions={session.permissions}
+              />
+            ) : (
+              <SettingsState>
+                An organization membership is required to manage Company Settings.
+              </SettingsState>
+            )
+          ) : null}
 
-          {activeTab ===
-          "appearance" ? (
+          {activeTab === "appearance" ? (
             session.membership ? (
               <SettingsAppearance
-                user={
-                  session.user
-                }
-                organizationId={
-                  session.membership
-                    .organizationId
-                }
-                permissions={
-                  session.permissions
-                }
+                user={session.user}
+                organizationId={session.membership.organizationId}
+                permissions={session.permissions}
               />
             ) : (
               <SettingsState>
@@ -207,14 +181,25 @@ export default function SettingsPage() {
             )
           ) : null}
 
-          {activeTab ===
-          "security" ? (
+          {activeTab === "security" ? (
             <SettingsSecurity />
           ) : null}
 
-          {activeTab ===
-          "billing" ? (
+          {activeTab === "billing" ? (
             <SettingsBillingUnavailable />
+          ) : null}
+
+          {activeTab === "audit" ? (
+            session.membership ? (
+              <SettingsAuditLogs
+                organizationId={session.membership.organizationId}
+                permissions={session.permissions}
+              />
+            ) : (
+              <SettingsState>
+                An organization membership is required to view Audit Logs.
+              </SettingsState>
+            )
           ) : null}
         </>
       )}
@@ -227,15 +212,12 @@ export default function SettingsPage() {
 function SettingsState({
   children,
 }: {
-  children:
-    React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
       <p className="text-sm text-zinc-500">
-        {
-          children
-        }
+        {children}
       </p>
     </section>
   );
@@ -246,8 +228,7 @@ function SettingsState({
 function SettingsError({
   onRetry,
 }: {
-  onRetry:
-    () => void;
+  onRetry: () => void;
 }) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-red-200 bg-white p-8 text-center shadow-sm">
@@ -258,9 +239,7 @@ function SettingsError({
 
         <button
           type="button"
-          onClick={
-            onRetry
-          }
+          onClick={onRetry}
           className="mt-4 h-9 rounded-lg border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
         >
           Try Again
