@@ -1,18 +1,38 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import {
+  type ReactNode,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
-import { SettingsAppearance } from "@/features/settings/components/SettingsAppearance";
+import {
+  SettingsAppearance,
+} from "@/features/settings/components/SettingsAppearance";
 
-import { SettingsProfile } from "@/features/settings/components/SettingsProfile";
+import {
+  SettingsProfile,
+} from "@/features/settings/components/SettingsProfile";
 
-import { SettingsSecurity } from "@/features/settings/components/SettingsSecurity";
+import {
+  SettingsSecurity,
+} from "@/features/settings/components/SettingsSecurity";
 
-import { CompanySettings } from "@/features/settings/components/CompanySettings";
+import {
+  CompanySettings,
+} from "@/features/settings/components/CompanySettings";
 
-import { SettingsAuditLogs } from "@/features/settings/components/SettingsAuditLogs";
+import {
+  SettingsAuditLogs,
+} from "@/features/settings/components/SettingsAuditLogs";
 
-import { useGetCurrentUserQuery } from "@/store/api/authApi";
+import {
+  SettingsBilling,
+} from "@/features/settings/components/SettingsBilling";
+
+import {
+  useGetCurrentUserQuery,
+} from "@/store/api/authApi";
 
 //************************************************************** */
 
@@ -24,42 +44,57 @@ type SettingsTab =
   | "billing"
   | "audit";
 
-//************************************************************** */
-
 const SETTINGS_TABS: Array<{
   id: SettingsTab;
   label: string;
 }> = [
-  {
-    id: "profile",
-    label: "Profile",
-  },
-  {
-    id: "appearance",
-    label: "Appearance",
-  },
-  {
-    id: "security",
-    label: "Security",
-  },
-  {
-    id: "company",
-    label: "Company Settings",
-  },
-  {
-    id: "billing",
-    label: "Billing",
-  },
-  {
-    id: "audit",
-    label: "Audit Logs",
-  },
+  { id: "profile", label: "Profile" },
+  { id: "appearance", label: "Appearance" },
+  { id: "security", label: "Security" },
+  { id: "company", label: "Company Settings" },
+  { id: "billing", label: "Billing" },
+  { id: "audit", label: "Audit Logs" },
 ];
 
 //************************************************************** */
 
+function subscribeToLocation(
+  onChange: () => void,
+): () => void {
+  window.addEventListener("popstate", onChange);
+
+  return () => {
+    window.removeEventListener("popstate", onChange);
+  };
+}
+
+function isBillingReturn(): boolean {
+  const value = new URLSearchParams(
+    window.location.search,
+  ).get("billing");
+
+  return (
+    value === "success" ||
+    value === "canceled" ||
+    value === "portal"
+  );
+}
+
+function serverBillingReturn(): boolean {
+  return false;
+}
+
+//************************************************************** */
+
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  const [selectedTab, setSelectedTab] =
+    useState<SettingsTab | null>(null);
+
+  const billingReturn = useSyncExternalStore(
+    subscribeToLocation,
+    isBillingReturn,
+    serverBillingReturn,
+  );
 
   const {
     data: session,
@@ -69,11 +104,33 @@ export default function SettingsPage() {
   } = useGetCurrentUserQuery();
 
   const canViewAuditLogs =
-    !!session?.membership && session.permissions.includes("audit:view");
+    !!session?.membership &&
+    session.permissions.includes("audit:view");
 
-  const visibleTabs = SETTINGS_TABS.filter(
-    (tab) => tab.id !== "audit" || canViewAuditLogs,
-  );
+  const canViewBilling =
+    !!session?.membership &&
+    session.permissions.includes("billing:view");
+
+  const visibleTabs = SETTINGS_TABS.filter((tab) => {
+    if (tab.id === "audit") {
+      return canViewAuditLogs;
+    }
+
+    if (tab.id === "billing") {
+      return canViewBilling;
+    }
+
+    return true;
+  });
+
+  const requestedTab =
+    selectedTab ?? (billingReturn ? "billing" : "profile");
+
+  const activeTab = visibleTabs.some(
+    (tab) => tab.id === requestedTab,
+  )
+    ? requestedTab
+    : "profile";
 
   const widthClass =
     activeTab === "audit"
@@ -81,8 +138,6 @@ export default function SettingsPage() {
       : activeTab === "billing"
         ? "max-w-5xl"
         : "max-w-2xl";
-
-  //************************************************************** */
 
   return (
     <div className={`${widthClass} space-y-6`}>
@@ -109,7 +164,7 @@ export default function SettingsPage() {
                 key={tab.id}
                 type="button"
                 aria-current={selected ? "page" : undefined}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => setSelectedTab(tab.id)}
                 className={[
                   "-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
                   selected
@@ -129,7 +184,9 @@ export default function SettingsPage() {
       ) : isError ? (
         <SettingsError onRetry={() => void refetch()} />
       ) : !session ? (
-        <SettingsState>MotoDesk could not load your account.</SettingsState>
+        <SettingsState>
+          MotoDesk could not load your account.
+        </SettingsState>
       ) : (
         <>
           {activeTab === "profile" ? (
@@ -140,43 +197,60 @@ export default function SettingsPage() {
             session.membership ? (
               <SettingsAppearance
                 user={session.user}
-                organizationId={session.membership.organizationId}
+                organizationId={
+                  session.membership.organizationId
+                }
                 permissions={session.permissions}
               />
             ) : (
               <SettingsState>
-                An organization membership is required to manage Appearance.
+                An organization membership is required to manage
+                Appearance.
               </SettingsState>
             )
           ) : null}
 
-          {activeTab === "security" ? <SettingsSecurity /> : null}
+          {activeTab === "security" ? (
+            <SettingsSecurity />
+          ) : null}
 
           {activeTab === "company" ? (
             session.membership ? (
               <CompanySettings
-                organizationId={session.membership.organizationId}
+                organizationId={
+                  session.membership.organizationId
+                }
                 permissions={session.permissions}
               />
             ) : (
               <SettingsState>
-                An organization membership is required to manage Company
-                Settings.
+                An organization membership is required to manage
+                Company Settings.
               </SettingsState>
             )
           ) : null}
 
-          {activeTab === "billing" ? <SettingsBillingUnavailable /> : null}
+          {activeTab === "billing" && session.membership ? (
+            <SettingsBilling
+              organizationId={
+                session.membership.organizationId
+              }
+              permissions={session.permissions}
+            />
+          ) : null}
 
           {activeTab === "audit" ? (
             session.membership ? (
               <SettingsAuditLogs
-                organizationId={session.membership.organizationId}
+                organizationId={
+                  session.membership.organizationId
+                }
                 permissions={session.permissions}
               />
             ) : (
               <SettingsState>
-                An organization membership is required to view Audit Logs.
+                An organization membership is required to view
+                Audit Logs.
               </SettingsState>
             )
           ) : null}
@@ -188,17 +262,27 @@ export default function SettingsPage() {
 
 //************************************************************** */
 
-function SettingsState({ children }: { children: ReactNode }) {
+function SettingsState({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-      <p className="text-sm text-zinc-500">{children}</p>
+      <p className="text-sm text-zinc-500">
+        {children}
+      </p>
     </section>
   );
 }
 
 //************************************************************** */
 
-function SettingsError({ onRetry }: { onRetry: () => void }) {
+function SettingsError({
+  onRetry,
+}: {
+  onRetry: () => void;
+}) {
   return (
     <section className="grid min-h-64 place-items-center rounded-xl border border-red-200 bg-white p-8 text-center shadow-sm">
       <div>
@@ -214,23 +298,6 @@ function SettingsError({ onRetry }: { onRetry: () => void }) {
           Try Again
         </button>
       </div>
-    </section>
-  );
-}
-
-//************************************************************** */
-
-function SettingsBillingUnavailable() {
-  return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-      <h2 className="text-sm font-semibold text-zinc-900">Billing</h2>
-
-      <p className="mt-2 text-sm leading-6 text-zinc-500">
-        Subscription billing is not configured for this MotoDesk environment
-        yet. Plan management, payment methods, invoices, and subscription
-        changes will appear here once the production billing provider is
-        connected.
-      </p>
     </section>
   );
 }
