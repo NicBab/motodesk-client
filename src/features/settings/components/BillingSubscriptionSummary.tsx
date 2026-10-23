@@ -73,28 +73,50 @@ export function BillingSubscriptionSummary({
     "PAUSED",
   ].includes(subscription.status);
 
+  const hasEnded =
+    subscription.status === "CANCELED" ||
+    subscription.status === "INCOMPLETE_EXPIRED" ||
+    subscription.status === "NOT_SUBSCRIBED";
+
+  const cancellationScheduled =
+    !hasEnded &&
+    (
+      subscription.cancelAtPeriodEnd ||
+      subscription.cancelAt !== null
+    );
+
+  // Prefer Stripe's explicit cancellation timestamp. Only infer
+  // the period-end date when Stripe sets cancelAtPeriodEnd.
+  const cancellationDate =
+    subscription.cancelAt ??
+    (
+      subscription.cancelAtPeriodEnd
+        ? subscription.currentPeriodEnd
+        : null
+    );
+
   const badgeClass = billingExempt
     ? "bg-emerald-50 text-emerald-700"
-    : needsAttention
+    : needsAttention || cancellationScheduled
       ? "bg-amber-50 text-amber-800"
       : "bg-zinc-100 text-zinc-700";
 
   const dateLabel =
-    subscription.status === "TRIALING"
-      ? "Trial ends"
-      : subscription.cancelAtPeriodEnd
-        ? "Scheduled cancellation"
-        : subscription.status === "CANCELED"
-          ? "Subscription ended"
+    subscription.status === "CANCELED"
+      ? "Subscription ended"
+      : subscription.status === "TRIALING"
+        ? "Trial ends"
+        : cancellationScheduled
+          ? "Scheduled cancellation"
           : "Current period ends";
 
   const dateValue =
-    subscription.status === "TRIALING"
-      ? subscription.trialEndsAt
-      : subscription.cancelAtPeriodEnd
-        ? subscription.cancelAt ?? subscription.currentPeriodEnd
-        : subscription.status === "CANCELED"
-          ? subscription.endedAt ?? subscription.canceledAt
+    subscription.status === "CANCELED"
+      ? subscription.endedAt ?? subscription.canceledAt
+      : subscription.status === "TRIALING"
+        ? subscription.trialEndsAt
+        : cancellationScheduled
+          ? cancellationDate
           : subscription.currentPeriodEnd;
 
   return (
@@ -127,7 +149,9 @@ export function BillingSubscriptionSummary({
         >
           {billingExempt
             ? "Exempt"
-            : STATUS_LABELS[subscription.status]}
+            : cancellationScheduled
+              ? `${STATUS_LABELS[subscription.status]} · Cancellation scheduled`
+              : STATUS_LABELS[subscription.status]}
         </span>
       </div>
 
@@ -200,11 +224,21 @@ export function BillingSubscriptionSummary({
         </div>
       </dl>
 
-      {!billingExempt && subscription.cancelAtPeriodEnd ? (
-        <p className="border-t border-zinc-100 px-6 py-4 text-sm text-amber-800">
-          Your subscription is scheduled to end. You can review
-          cancellation options in Manage billing.
-        </p>
+      {cancellationScheduled ? (
+        <div
+          role="status"
+          className="border-t border-amber-100 bg-amber-50/60 px-6 py-4"
+        >
+          <p className="text-sm font-semibold text-amber-900">
+            {cancellationDate
+              ? `Cancellation scheduled for ${formatDate(cancellationDate)}`
+              : "Cancellation scheduled"}
+          </p>
+
+          <p className="mt-1 text-sm leading-6 text-amber-800">
+            Review your scheduled cancellation in Manage billing.
+          </p>
+        </div>
       ) : null}
 
       {!billingExempt && needsAttention ? (
