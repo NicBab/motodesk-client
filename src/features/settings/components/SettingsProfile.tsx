@@ -122,6 +122,8 @@ export function SettingsProfile({
         "preferredTimezone",
       );
 
+    //************************************************************** */
+
     if (
       !firstName ||
       !lastName
@@ -143,12 +145,25 @@ export function SettingsProfile({
       return;
     }
 
+    //************************************************************** */
+
     try {
       await updateProfile({
         firstName,
         lastName,
-        phone,
-        jobTitle,
+
+        ...(phone !== undefined
+          ? {
+              phone,
+            }
+          : {}),
+
+        ...(jobTitle !== undefined
+          ? {
+              jobTitle,
+            }
+          : {}),
+
         preferredTimezone,
       }).unwrap();
 
@@ -424,7 +439,7 @@ function readOptional(
     FormData,
   key:
     string,
-): string | null {
+): string | undefined {
   const value =
     readRequired(
       formData,
@@ -432,7 +447,7 @@ function readOptional(
     );
 
   return value ||
-    null;
+    undefined;
 }
 
 //************************************************************** */
