@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ExternalLink,
@@ -26,6 +30,10 @@ import {
 import {
   BillingSubscriptionSummary,
 } from "./BillingSubscriptionSummary";
+
+import {
+  BillingUserCapacity,
+} from "./BillingUserCapacity";
 
 //************************************************************** */
 
@@ -114,12 +122,13 @@ function BillingViewer({
 }: SettingsBillingProps) {
   const active = useRef(true);
 
-  const [actionError, setActionError] = useState<string | null>(
-    null,
-  );
+  const [actionError, setActionError] =
+    useState<string | null>(null);
 
   const [pendingPlanId, setPendingPlanId] =
     useState<BillingPlanId | null>(null);
+
+  const [capacityBusy, setCapacityBusy] = useState(false);
 
   useEffect(() => {
     active.current = true;
@@ -157,7 +166,10 @@ function BillingViewer({
   const canManageBilling =
     permissions.includes("billing:update");
 
-  const actionPending = checkoutLoading || portalLoading;
+  const actionPending =
+    checkoutLoading ||
+    portalLoading ||
+    capacityBusy;
 
   async function handleCheckout(
     planId: BillingPlanId,
@@ -176,7 +188,10 @@ function BillingViewer({
       }).unwrap();
 
       if (active.current) {
-        redirectToStripe(result.url, "checkout.stripe.com");
+        redirectToStripe(
+          result.url,
+          "checkout.stripe.com",
+        );
       }
     } catch (requestError) {
       if (active.current) {
@@ -203,7 +218,10 @@ function BillingViewer({
       ).unwrap();
 
       if (active.current) {
-        redirectToStripe(result.url, "billing.stripe.com");
+        redirectToStripe(
+          result.url,
+          "billing.stripe.com",
+        );
       }
     } catch (requestError) {
       if (active.current) {
@@ -344,6 +362,24 @@ function BillingViewer({
       ) : null}
 
       <BillingSubscriptionSummary overview={overview} />
+
+      <BillingUserCapacity
+        overview={overview}
+        canManageBilling={canManageBilling}
+        disabled={
+          !overview.configured ||
+          checkoutLoading ||
+          portalLoading ||
+          isError
+        }
+        onBusyChange={setCapacityBusy}
+        onBillingChanged={() => {
+          void refetch();
+        }}
+        onManageBilling={() => {
+          void handlePortal();
+        }}
+      />
 
       {!overview.billingExempt && canStartCheckout ? (
         <>

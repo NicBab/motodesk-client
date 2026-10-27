@@ -85,8 +85,6 @@ export function BillingSubscriptionSummary({
       subscription.cancelAt !== null
     );
 
-  // Prefer Stripe's explicit cancellation timestamp. Only infer
-  // the period-end date when Stripe sets cancelAtPeriodEnd.
   const cancellationDate =
     subscription.cancelAt ??
     (
@@ -118,6 +116,9 @@ export function BillingSubscriptionSummary({
         : cancellationScheduled
           ? cancellationDate
           : subscription.currentPeriodEnd;
+
+  const monthlyTotalAmount =
+    subscription.monthlyTotalAmount;
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -179,16 +180,33 @@ export function BillingSubscriptionSummary({
       <dl className="grid gap-6 p-6 sm:grid-cols-3">
         <div>
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Plan price
+            Monthly list price
           </dt>
 
           <dd className="mt-2 text-sm font-semibold text-zinc-900">
             {billingExempt
               ? "Exempt"
-              : plan
-                ? `${formatPrice(plan.unitAmount, plan.currency)} / month`
+              : plan && monthlyTotalAmount !== null
+                ? `${formatPrice(monthlyTotalAmount, plan.currency)} / month`
                 : "No plan selected"}
           </dd>
+
+          {!billingExempt && plan ? (
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              {formatPrice(plan.unitAmount, plan.currency)} base plan
+              {subscription.additionalUserQuantity > 0
+                ? ` + ${formatPrice(
+                    subscription.additionalUserMonthlyAmount,
+                    plan.currency,
+                  )} for ${subscription.additionalUserQuantity} additional ${
+                    subscription.additionalUserQuantity === 1
+                      ? "user"
+                      : "users"
+                  }`
+                : ""}
+              . Before taxes, discounts, and credits.
+            </p>
+          ) : null}
         </div>
 
         <div>
@@ -200,12 +218,20 @@ export function BillingSubscriptionSummary({
           <dd className="mt-2 text-sm font-semibold text-zinc-900">
             {usage.assignedUsers}
             {!billingExempt && plan
-              ? ` / ${plan.usersIncluded} included`
+              ? ` / ${usage.userLimit}`
               : ""}
           </dd>
 
-          <p className="mt-1 text-xs text-zinc-500">
-            Includes the organization owner.
+          <p className="mt-1 text-xs leading-5 text-zinc-500">
+            {billingExempt
+              ? "Unlimited capacity. Includes the organization owner."
+              : plan
+                ? `${plan.usersIncluded} included${
+                    subscription.additionalUserQuantity > 0
+                      ? ` + ${subscription.additionalUserQuantity} additional`
+                      : ""
+                  }. Includes the organization owner.`
+                : "Includes the organization owner."}
           </p>
         </div>
 
