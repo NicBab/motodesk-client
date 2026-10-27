@@ -40,6 +40,29 @@ export interface BillingPlanOption
 
 //************************************************************** */
 
+export interface BillingPendingChange {
+  kind: "PLAN_CHANGE" | "USER_CAPACITY_CHANGE";
+
+  // Null for viewers who did not request the change.
+  changeId: string | null;
+  requestedByCurrentUser: boolean;
+
+  status:
+    | "PROCESSING"
+    | "PENDING_PAYMENT"
+    | "RECONCILIATION_REQUIRED";
+
+  targetPlanId: BillingPlanId;
+  targetAdditionalUserQuantity: number;
+  targetUserLimit: number;
+
+  currency: string;
+  monthlyTotalAmount: number;
+  submittedAt: string | null;
+}
+
+//************************************************************** */
+
 export interface BillingOverview {
   organizationId: string;
 
@@ -75,10 +98,13 @@ export interface BillingOverview {
   usage: {
     assignedUsers: number;
 
-    // Null means the organization is billing-exempt.
-    // Zero means no purchased plan capacity is available.
+    // Purchased capacity. A pending reduction can temporarily
+    // impose a lower limit, enforced by the server.
+    // Null represents billing-exempt, unlimited capacity.
     userLimit: number | null;
   };
+
+  pendingChange: BillingPendingChange | null;
 
   checkoutPending: boolean;
   lastSyncedAt: string | null;
@@ -132,6 +158,57 @@ export interface BillingUserCapacityConfirmation {
   status: "APPLIED" | "PENDING_PAYMENT";
   currency: string;
 
+  targetAdditionalUserQuantity: number;
+  targetUserLimit: number;
+  monthlyTotalAmount: number;
+}
+
+//************************************************************** */
+
+export interface CreateBillingPlanChangePreviewInput {
+  planId: BillingPlanId;
+
+  // Desired total additional users on the target Pro plan.
+  // Must be zero when selecting Starter or Business.
+  additionalUserQuantity: number;
+}
+
+export interface BillingPlanChangePreview {
+  changeId: string;
+  currency: string;
+
+  currentPlanId: BillingPlanId;
+  targetPlanId: BillingPlanId;
+
+  currentAdditionalUserQuantity: number;
+  targetAdditionalUserQuantity: number;
+
+  currentUserLimit: number;
+  targetUserLimit: number;
+
+  // Target recurring list price before taxes, discounts,
+  // credits, and prorations.
+  monthlyTotalAmount: number;
+
+  estimatedInvoiceAmountDue: number;
+  invoiceEstimateScope: "next_invoice";
+
+  trialEndsAt: string | null;
+  expiresAt: string;
+}
+
+//************************************************************** */
+
+export interface ConfirmBillingPlanChangeInput {
+  changeId: string;
+}
+
+export interface BillingPlanChangeConfirmation {
+  changeId: string;
+  status: "APPLIED" | "PENDING_PAYMENT";
+  currency: string;
+
+  targetPlanId: BillingPlanId;
   targetAdditionalUserQuantity: number;
   targetUserLimit: number;
   monthlyTotalAmount: number;

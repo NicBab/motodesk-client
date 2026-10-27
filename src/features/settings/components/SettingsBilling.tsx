@@ -35,6 +35,14 @@ import {
   BillingUserCapacity,
 } from "./BillingUserCapacity";
 
+import {
+  BillingPlanChange,
+} from "./BillingPlanChange";
+
+import {
+  BillingPendingChange,
+} from "./BillingPendingChange";
+
 //************************************************************** */
 
 interface SettingsBillingProps {
@@ -129,6 +137,8 @@ function BillingViewer({
     useState<BillingPlanId | null>(null);
 
   const [capacityBusy, setCapacityBusy] = useState(false);
+  const [planChangeBusy, setPlanChangeBusy] = useState(false);
+  const [pendingChangeBusy, setPendingChangeBusy] = useState(false);
 
   useEffect(() => {
     active.current = true;
@@ -169,12 +179,18 @@ function BillingViewer({
   const actionPending =
     checkoutLoading ||
     portalLoading ||
-    capacityBusy;
+    capacityBusy ||
+    planChangeBusy ||
+    pendingChangeBusy;
 
   async function handleCheckout(
     planId: BillingPlanId,
   ): Promise<void> {
-    if (!canManageBilling || actionPending) {
+    if (
+      !canManageBilling ||
+      actionPending ||
+      overview?.pendingChange
+    ) {
       return;
     }
 
@@ -273,6 +289,8 @@ function BillingViewer({
     );
   }
 
+  const hasPendingChange = overview.pendingChange !== null;
+
   const canStartCheckout = [
     "NOT_SUBSCRIBED",
     "CANCELED",
@@ -281,7 +299,8 @@ function BillingViewer({
 
   const hasBillingHistory =
     overview.subscription.plan !== null ||
-    overview.checkoutPending;
+    overview.checkoutPending ||
+    hasPendingChange;
 
   return (
     <div className="space-y-6">
@@ -363,53 +382,99 @@ function BillingViewer({
 
       <BillingSubscriptionSummary overview={overview} />
 
-      <BillingUserCapacity
-        overview={overview}
-        canManageBilling={canManageBilling}
-        disabled={
-          !overview.configured ||
-          checkoutLoading ||
-          portalLoading ||
-          isError
-        }
-        onBusyChange={setCapacityBusy}
-        onBillingChanged={() => {
-          void refetch();
-        }}
-        onManageBilling={() => {
-          void handlePortal();
-        }}
-      />
-
-      {!overview.billingExempt && canStartCheckout ? (
+      {hasPendingChange ? (
+        <BillingPendingChange
+          overview={overview}
+          canManageBilling={canManageBilling}
+          disabled={
+            !overview.configured ||
+            checkoutLoading ||
+            portalLoading ||
+            capacityBusy ||
+            planChangeBusy ||
+            isError
+          }
+          onBusyChange={setPendingChangeBusy}
+          onBillingChanged={() => {
+            void refetch();
+          }}
+          onManageBilling={() => {
+            void handlePortal();
+          }}
+        />
+      ) : (
         <>
-          {overview.checkoutPending ? (
-            <p
-              role="status"
-              className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800"
-            >
-              A checkout is pending. Select the same plan to continue
-              an open checkout. If you already completed it, wait for
-              confirmation and refresh billing.
-            </p>
-          ) : null}
-
-          <BillingPlanSelection
-            plans={overview.availablePlans}
-            assignedUsers={overview.usage.assignedUsers}
+          <BillingPlanChange
+            overview={overview}
             canManageBilling={canManageBilling}
             disabled={
               !overview.configured ||
-              actionPending ||
+              checkoutLoading ||
+              portalLoading ||
+              capacityBusy ||
+              pendingChangeBusy ||
               isError
             }
-            pendingPlanId={pendingPlanId}
-            onSelectPlan={(planId) => {
-              void handleCheckout(planId);
+            onBusyChange={setPlanChangeBusy}
+            onBillingChanged={() => {
+              void refetch();
+            }}
+            onManageBilling={() => {
+              void handlePortal();
             }}
           />
+
+          <BillingUserCapacity
+            overview={overview}
+            canManageBilling={canManageBilling}
+            disabled={
+              !overview.configured ||
+              checkoutLoading ||
+              portalLoading ||
+              planChangeBusy ||
+              pendingChangeBusy ||
+              isError
+            }
+            onBusyChange={setCapacityBusy}
+            onBillingChanged={() => {
+              void refetch();
+            }}
+            onManageBilling={() => {
+              void handlePortal();
+            }}
+          />
+
+          {!overview.billingExempt && canStartCheckout ? (
+            <>
+              {overview.checkoutPending ? (
+                <p
+                  role="status"
+                  className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800"
+                >
+                  A checkout is pending. Select the same plan to
+                  continue an open checkout. If you already completed
+                  it, wait for confirmation and refresh billing.
+                </p>
+              ) : null}
+
+              <BillingPlanSelection
+                plans={overview.availablePlans}
+                assignedUsers={overview.usage.assignedUsers}
+                canManageBilling={canManageBilling}
+                disabled={
+                  !overview.configured ||
+                  actionPending ||
+                  isError
+                }
+                pendingPlanId={pendingPlanId}
+                onSelectPlan={(planId) => {
+                  void handleCheckout(planId);
+                }}
+              />
+            </>
+          ) : null}
         </>
-      ) : null}
+      )}
     </div>
   );
 }

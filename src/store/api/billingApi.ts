@@ -6,6 +6,10 @@ import type {
   ConfirmBillingUserCapacityChangeInput,
   BillingUserCapacityPreview,
   BillingUserCapacityConfirmation,
+  CreateBillingPlanChangePreviewInput,
+  ConfirmBillingPlanChangeInput,
+  BillingPlanChangePreview,
+  BillingPlanChangeConfirmation,
 } from "@/features/settings/billing.types";
 
 import { baseApi } from "./baseApi";
@@ -29,6 +33,16 @@ interface CreateBillingUserCapacityPreviewRequest
 
 interface ConfirmBillingUserCapacityChangeRequest
   extends ConfirmBillingUserCapacityChangeInput {
+  organizationId: string;
+}
+
+interface CreateBillingPlanChangePreviewRequest
+  extends CreateBillingPlanChangePreviewInput {
+  organizationId: string;
+}
+
+interface ConfirmBillingPlanChangeRequest
+  extends ConfirmBillingPlanChangeInput {
   organizationId: string;
 }
 
@@ -145,6 +159,56 @@ export const billingApi = baseApi.injectEndpoints({
         response: ApiSuccessResponse<BillingUserCapacityConfirmation>,
       ) => response.data,
     }),
+
+    //************************************************************** */
+
+    createBillingPlanChangePreview: builder.mutation<
+      BillingPlanChangePreview,
+      CreateBillingPlanChangePreviewRequest
+    >({
+      query: ({
+        organizationId,
+        planId,
+        additionalUserQuantity,
+      }) => ({
+        url: `${billingPath(organizationId)}/plan-change/preview`,
+        method: "POST",
+        cache: "no-store",
+
+        body: {
+          planId,
+          additionalUserQuantity,
+        },
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<BillingPlanChangePreview>,
+      ) => response.data,
+    }),
+
+    //************************************************************** */
+
+    confirmBillingPlanChange: builder.mutation<
+      BillingPlanChangeConfirmation,
+      ConfirmBillingPlanChangeRequest
+    >({
+      query: ({
+        organizationId,
+        changeId,
+      }) => ({
+        url: `${billingPath(organizationId)}/plan-change/confirm`,
+        method: "POST",
+        cache: "no-store",
+
+        body: {
+          changeId,
+        },
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<BillingPlanChangeConfirmation>,
+      ) => response.data,
+    }),
   }),
 });
 
@@ -156,6 +220,8 @@ export const {
   useCreateBillingPortalMutation,
   useCreateBillingUserCapacityPreviewMutation,
   useConfirmBillingUserCapacityChangeMutation,
+  useCreateBillingPlanChangePreviewMutation,
+  useConfirmBillingPlanChangeMutation,
 } = billingApi;
 
 //************************************************************** */
