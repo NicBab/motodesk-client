@@ -1,3 +1,4 @@
+
 import type {
   BillingOverview,
   BillingRedirectResult,
@@ -20,6 +21,14 @@ type ApiSuccessResponse<T> = {
   success: true;
   data: T;
 };
+
+export type SubscriptionAccessMode =
+  | "FULL"
+  | "READ_ONLY";
+
+export interface SubscriptionAccessResult {
+  accessMode: SubscriptionAccessMode;
+}
 
 interface CreateBillingCheckoutRequest
   extends CreateBillingCheckoutInput {
@@ -56,6 +65,25 @@ function billingPath(organizationId: string): string {
 
 export const billingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getSubscriptionAccess: builder.query<
+      SubscriptionAccessResult,
+      string
+    >({
+      query: (organizationId) => ({
+        url: `${billingPath(organizationId)}/access`,
+        method: "GET",
+        cache: "no-store",
+      }),
+
+      transformResponse: (
+        response: ApiSuccessResponse<SubscriptionAccessResult>,
+      ) => response.data,
+
+      keepUnusedDataFor: 0,
+    }),
+
+    //************************************************************** */
+
     getBillingOverview: builder.query<
       BillingOverview,
       string
@@ -215,6 +243,7 @@ export const billingApi = baseApi.injectEndpoints({
 //************************************************************** */
 
 export const {
+  useGetSubscriptionAccessQuery,
   useGetBillingOverviewQuery,
   useCreateBillingCheckoutMutation,
   useCreateBillingPortalMutation,

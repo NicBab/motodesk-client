@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -5,9 +6,19 @@ import {
   useEffect,
 } from "react";
 
+import Link from "next/link";
+
 import {
   useRouter,
 } from "next/navigation";
+
+import {
+  AlertTriangle,
+} from "lucide-react";
+
+import {
+  skipToken,
+} from "@reduxjs/toolkit/query";
 
 import {
   clearWorkspace,
@@ -17,6 +28,10 @@ import {
 import {
   useGetCurrentUserQuery,
 } from "@/store/api/authApi";
+
+import {
+  useGetSubscriptionAccessQuery,
+} from "@/store/api/billingApi";
 
 import {
   useAppDispatch,
@@ -67,8 +82,39 @@ export function AppShell({
     useGetCurrentUserQuery();
 
   //************************************************************** */
-  // Keep the active workspace synchronized with the membership
-  // carried by the authenticated session.
+
+  const subscriptionOrganizationId =
+    !isError &&
+    session?.user.emailVerifiedAt &&
+    session.membership
+      ? session.membership.organizationId
+      : skipToken;
+
+  const {
+    currentData: subscriptionAccess,
+  } = useGetSubscriptionAccessQuery(
+    subscriptionOrganizationId,
+    {
+      pollingInterval: 60_000,
+      refetchOnMountOrArgChange: true,
+    },
+  );
+
+  const isSubscriptionRestricted =
+    subscriptionAccess?.accessMode ===
+    "READ_ONLY";
+
+  const canViewBilling =
+    session?.permissions.includes(
+      "billing:view",
+    ) ?? false;
+
+  const canUpdateBilling =
+    session?.permissions.includes(
+      "billing:update",
+    ) ?? false;
+
+  //************************************************************** */
 
   useEffect(() => {
     if (
@@ -93,8 +139,6 @@ export function AppShell({
   ]);
 
   //************************************************************** */
-  // Authenticated password users must verify their email before
-  // entering the protected MotoDesk application.
 
   useEffect(() => {
     if (
@@ -124,10 +168,6 @@ export function AppShell({
   ]);
 
   //************************************************************** */
-  // An authenticated account without a membership has completed
-  // identity creation but has not completed MotoDesk onboarding.
-  //
-  // Email verification takes precedence over onboarding.
 
   useEffect(() => {
     if (
@@ -156,7 +196,6 @@ export function AppShell({
   ]);
 
   //************************************************************** */
-  // Authentication failures return to login.
 
   useEffect(() => {
     if (!isError) {
@@ -191,9 +230,6 @@ export function AppShell({
   }
 
   //************************************************************** */
-  // Nothing from the protected application may render while an
-  // unauthenticated account, an unverified account, or an account
-  // requiring onboarding is being redirected.
 
   if (
     isError ||
@@ -224,6 +260,45 @@ export function AppShell({
             <AppTopbar
               session={session}
             />
+
+            {isSubscriptionRestricted && (
+              <div
+                role="status"
+                className="shrink-0 border-b border-amber-200 bg-amber-50 px-6 py-3 dark:border-amber-900 dark:bg-amber-950/40"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <AlertTriangle
+                      aria-hidden="true"
+                      className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+                    />
+
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
+                        Subscription requires attention
+                      </p>
+
+                      <p className="mt-0.5 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+                        {canViewBilling && canUpdateBilling
+                          ? "Your workspace is read-only. Manage your subscription to restore full access."
+                          : "Your workspace is read-only. Contact your organization owner or administrator to restore full access."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {canViewBilling && (
+                    <Link
+                      href="/settings?tab=billing"
+                      className="inline-flex shrink-0 items-center justify-center rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900"
+                    >
+                      {canUpdateBilling
+                        ? "Manage billing"
+                        : "View billing"}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
 
             <main className="min-w-0 flex-1 overflow-y-auto p-6">
               {children}

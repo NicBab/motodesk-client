@@ -1,10 +1,15 @@
+
 "use client";
 
 import {
   type ReactNode,
-  useState,
-  useSyncExternalStore,
+  Suspense,
 } from "react";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import {
   SettingsAppearance,
@@ -58,21 +63,17 @@ const SETTINGS_TABS: Array<{
 
 //************************************************************** */
 
-function subscribeToLocation(
-  onChange: () => void,
-): () => void {
-  window.addEventListener("popstate", onChange);
-
-  return () => {
-    window.removeEventListener("popstate", onChange);
-  };
+function isSettingsTab(
+  value: string | null,
+): value is SettingsTab {
+  return SETTINGS_TABS.some(
+    (tab) => tab.id === value,
+  );
 }
 
-function isBillingReturn(): boolean {
-  const value = new URLSearchParams(
-    window.location.search,
-  ).get("billing");
-
+function isBillingReturn(
+  value: string | null,
+): boolean {
   return (
     value === "success" ||
     value === "canceled" ||
@@ -80,21 +81,27 @@ function isBillingReturn(): boolean {
   );
 }
 
-function serverBillingReturn(): boolean {
-  return false;
+//************************************************************** */
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <SettingsState>
+          Loading settings...
+        </SettingsState>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
+  );
 }
 
 //************************************************************** */
 
-export default function SettingsPage() {
-  const [selectedTab, setSelectedTab] =
-    useState<SettingsTab | null>(null);
-
-  const billingReturn = useSyncExternalStore(
-    subscribeToLocation,
-    isBillingReturn,
-    serverBillingReturn,
-  );
+function SettingsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     data: session,
@@ -123,14 +130,51 @@ export default function SettingsPage() {
     return true;
   });
 
-  const requestedTab =
-    selectedTab ?? (billingReturn ? "billing" : "profile");
+  //************************************************************** */
+
+  const tabParameter = searchParams.get("tab");
+
+  const billingReturn = isBillingReturn(
+    searchParams.get("billing"),
+  );
+
+  const requestedTab: SettingsTab =
+    isSettingsTab(tabParameter)
+      ? tabParameter
+      : billingReturn
+        ? "billing"
+        : "profile";
 
   const activeTab = visibleTabs.some(
     (tab) => tab.id === requestedTab,
   )
     ? requestedTab
     : "profile";
+
+  function selectTab(tab: SettingsTab): void {
+    if (
+      !visibleTabs.some(
+        (visibleTab) => visibleTab.id === tab,
+      )
+    ) {
+      return;
+    }
+
+    const params = new URLSearchParams(
+      searchParams.toString(),
+    );
+
+    params.set("tab", tab);
+
+    router.push(
+      `/settings?${params.toString()}`,
+      {
+        scroll: false,
+      },
+    );
+  }
+
+  //************************************************************** */
 
   const widthClass =
     activeTab === "audit"
@@ -164,7 +208,7 @@ export default function SettingsPage() {
                 key={tab.id}
                 type="button"
                 aria-current={selected ? "page" : undefined}
-                onClick={() => setSelectedTab(tab.id)}
+                onClick={() => selectTab(tab.id)}
                 className={[
                   "-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
                   selected
@@ -180,7 +224,9 @@ export default function SettingsPage() {
       </nav>
 
       {isLoading ? (
-        <SettingsState>Loading settings...</SettingsState>
+        <SettingsState>
+          Loading settings...
+        </SettingsState>
       ) : isError ? (
         <SettingsError onRetry={() => void refetch()} />
       ) : !session ? (
