@@ -1,3 +1,4 @@
+
 //************************************************************** */
 
 export type BillingPlanId =
@@ -22,14 +23,23 @@ export interface BillingAdditionalUserPricing {
   unitAmount: number;
 }
 
+export interface BillingAdditionalLocationPricing {
+  unitAmount: number;
+}
+
 export interface BillingSubscriptionPlan {
   id: BillingPlanId;
   name: string;
   currency: string;
   interval: "month";
   unitAmount: number;
+
   usersIncluded: number;
+  locationsIncluded: number;
+
   additionalUserPricing: BillingAdditionalUserPricing | null;
+
+  additionalLocationPricing: BillingAdditionalLocationPricing | null;
 }
 
 export interface BillingPlanOption
@@ -79,6 +89,10 @@ export interface BillingOverview {
     additionalUserUnitAmount: number | null;
     additionalUserMonthlyAmount: number;
 
+    additionalLocationQuantity: number;
+    additionalLocationUnitAmount: number | null;
+    additionalLocationMonthlyAmount: number;
+
     // Recurring list price before taxes, discounts, credits,
     // and prorations. Null when no plan is selected.
     monthlyTotalAmount: number | null;
@@ -102,9 +116,21 @@ export interface BillingOverview {
     // impose a lower limit, enforced by the server.
     // Null represents billing-exempt, unlimited capacity.
     userLimit: number | null;
+
+    activeLocations: number;
+
+    // Purchased shop capacity.
+    // Null represents billing-exempt, unlimited capacity.
+    locationLimit: number | null;
+
+    // Remaining purchased shop capacity.
+    // Null represents billing-exempt, unlimited capacity.
+    availableLocations: number | null;
   };
 
   pendingChange: BillingPendingChange | null;
+
+  locationCapacityChangePending: boolean;
 
   checkoutPending: boolean;
   lastSyncedAt: string | null;

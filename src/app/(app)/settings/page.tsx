@@ -36,6 +36,10 @@ import {
 } from "@/features/settings/components/SettingsBilling";
 
 import {
+  SettingsLocations,
+} from "@/features/settings/components/SettingsLocations";
+
+import {
   useGetCurrentUserQuery,
 } from "@/store/api/authApi";
 
@@ -46,6 +50,7 @@ type SettingsTab =
   | "appearance"
   | "security"
   | "company"
+  | "locations"
   | "billing"
   | "audit";
 
@@ -57,6 +62,7 @@ const SETTINGS_TABS: Array<{
   { id: "appearance", label: "Appearance" },
   { id: "security", label: "Security" },
   { id: "company", label: "Company Settings" },
+  { id: "locations", label: "Locations" },
   { id: "billing", label: "Billing" },
   { id: "audit", label: "Audit Logs" },
 ];
@@ -118,6 +124,13 @@ function SettingsContent() {
     !!session?.membership &&
     session.permissions.includes("billing:view");
 
+  const canViewLocations =
+    !!session?.membership &&
+    session.permissions.includes("organization:view");
+
+  const isOwner =
+    session?.membership?.role === "OWNER";
+
   const visibleTabs = SETTINGS_TABS.filter((tab) => {
     if (tab.id === "audit") {
       return canViewAuditLogs;
@@ -125,6 +138,10 @@ function SettingsContent() {
 
     if (tab.id === "billing") {
       return canViewBilling;
+    }
+
+    if (tab.id === "locations") {
+      return canViewLocations;
     }
 
     return true;
@@ -179,7 +196,8 @@ function SettingsContent() {
   const widthClass =
     activeTab === "audit"
       ? "max-w-7xl"
-      : activeTab === "billing"
+      : activeTab === "billing" ||
+          activeTab === "locations"
         ? "max-w-5xl"
         : "max-w-2xl";
 
@@ -274,6 +292,17 @@ function SettingsContent() {
                 Company Settings.
               </SettingsState>
             )
+          ) : null}
+
+          {activeTab === "locations" &&
+          session.membership &&
+          canViewLocations ? (
+            <SettingsLocations
+              organizationId={
+                session.membership.organizationId
+              }
+              isOwner={isOwner}
+            />
           ) : null}
 
           {activeTab === "billing" && session.membership ? (

@@ -20,6 +20,8 @@ import { TimeAttendanceTab } from "@/features/time-clock/components/TimeAttendan
 
 import { UserPermissionsTab } from "@/features/employees/components/UserPermissionsTab";
 
+import { EmployeeInvitationsTab } from "@/features/employees/components/EmployeeInvitationsTab";
+
 import type {
   Employee,
   EmployeeRole,
@@ -40,7 +42,7 @@ import { selectActiveOrganizationId } from "@/store/slices/workspaceSlice";
 
 //************************************************************** */
 
-type EmployeeTab = "employees" | "time-attendance" | "permissions";
+type EmployeeTab = "employees" | "time-attendance" | "permissions" | "invitations";
 
 type StatusFilter = "ALL" | EmployeeStatus;
 
@@ -114,6 +116,9 @@ export default function EmployeesPage() {
     session?.permissions.includes("memberships:update") ||
     session?.permissions.includes("memberships:create") ||
     false;
+
+  const canManageInvitations =
+    session?.permissions.includes("memberships:invite") ?? false;
 
   const activeCount = employees.filter(
     (employee) => employee.status === "ACTIVE",
@@ -219,17 +224,26 @@ export default function EmployeesPage() {
           onClick={() => setActiveTab("employees")}
         />
 
-        <EmployeeTabButton
-          active={activeTab === "time-attendance"}
-          label="Time and Attendance"
-          onClick={() => setActiveTab("time-attendance")}
-        />
+        {canManageTimeClock ? (
+          <EmployeeTabButton
+            active={activeTab === "time-attendance"}
+            label="Time and Attendance"
+            onClick={() => setActiveTab("time-attendance")}
+          />
+        ) : null}
 
         <EmployeeTabButton
           active={activeTab === "permissions"}
           label="User Permissions"
           onClick={() => setActiveTab("permissions")}
         />
+        {canManageInvitations ? (
+          <EmployeeTabButton
+            active={activeTab === "invitations"}
+            label="Invitations"
+            onClick={() => setActiveTab("invitations")}
+          />
+        ) : null}
       </div>
 
       {activeTab === "employees" ? (
@@ -308,7 +322,7 @@ export default function EmployeesPage() {
         </>
       ) : null}
 
-      {activeTab === "time-attendance" && organizationId ? (
+      {activeTab === "time-attendance" && organizationId && canManageTimeClock ? (
         <TimeAttendanceTab
           organizationId={organizationId}
           employees={employees}
@@ -322,6 +336,10 @@ export default function EmployeesPage() {
           canManage={canManageMemberships}
           isOwner={session?.membership?.role === "OWNER"}
         />
+      ) : null}
+
+      {activeTab === "invitations" && organizationId && canManageInvitations ? (
+        <EmployeeInvitationsTab organizationId={organizationId} />
       ) : null}
 
       {organizationId && dialogOpen ? (
