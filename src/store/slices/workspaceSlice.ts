@@ -1,3 +1,4 @@
+
 //************************************************************** */
 
 import {
@@ -23,6 +24,8 @@ const initialState: WorkspaceState = {
   activeLocationId: null,
 };
 
+//************************************************************** */
+
 const workspaceSlice = createSlice({
   name: "workspace",
 
@@ -36,16 +39,26 @@ const workspaceSlice = createSlice({
         name: string;
       }>,
     ) => {
+      const organizationChanged =
+        state.activeOrganizationId !== action.payload.id;
+
       state.activeOrganizationId = action.payload.id;
+
       state.activeOrganizationName = action.payload.name;
-      state.activeLocationId = null;
+
+      if (organizationChanged) {
+        state.activeLocationId = null;
+      }
     },
 
     setActiveLocation: (
       state,
       action: PayloadAction<string | null>,
     ) => {
-      state.activeLocationId = action.payload;
+      state.activeLocationId =
+        state.activeOrganizationId
+          ? action.payload
+          : null;
     },
 
     clearWorkspace: (state) => {
@@ -64,8 +77,12 @@ export const {
   clearWorkspace,
 } = workspaceSlice.actions;
 
+//************************************************************** */
+
 export const workspaceReducer =
   workspaceSlice.reducer;
+
+//************************************************************** */
 
 export const selectActiveOrganizationId = (
   state: RootState,

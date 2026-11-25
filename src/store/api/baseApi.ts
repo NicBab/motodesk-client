@@ -16,6 +16,8 @@ import { toast } from "sonner";
 
 import { clientEnv } from "@/config/env";
 
+import type { RootState } from "@/store/store";
+
 //************************************************************** */
 
 const rawBaseQuery = fetchBaseQuery({
@@ -31,8 +33,69 @@ const baseQueryWithSubscriptionAccess: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+  const state = api.getState() as RootState;
+
+  const {
+    activeOrganizationId,
+    activeLocationId,
+  } = state.workspace;
+
+  const request: FetchArgs =
+    typeof args === "string"
+      ? { url: args }
+      : { ...args };
+
+  const headers = new Headers();
+
+if (request.headers instanceof Headers) {
+  request.headers.forEach((value, key) => {
+    headers.set(key, value);
+  });
+} else if (Array.isArray(request.headers)) {
+  for (const [key, value] of request.headers) {
+    if (key !== undefined && value !== undefined) {
+      headers.append(key, value);
+    }
+  }
+} else if (request.headers) {
+  for (const [key, value] of Object.entries(request.headers)) {
+    if (value !== undefined) {
+      headers.set(key, value);
+    }
+  }
+}
+
+  //************************************************************** */
+  // Shop Location Context
+  //************************************************************** */
+
+  const organizationMatch = request.url.match(
+    /^\/?organizations\/([^/?#]+)(?:\/|[?#]|$)/,
+  );
+
+  const requestOrganizationId =
+    organizationMatch?.[1];
+
+  headers.delete("X-Shop-Location-Id");
+
+  if (
+    activeOrganizationId &&
+    activeLocationId &&
+    requestOrganizationId ===
+      encodeURIComponent(activeOrganizationId)
+  ) {
+    headers.set(
+      "X-Shop-Location-Id",
+      activeLocationId,
+    );
+  }
+
+  request.headers = headers;
+
+  //************************************************************** */
+
   const result = await rawBaseQuery(
-    args,
+    request,
     api,
     extraOptions,
   );

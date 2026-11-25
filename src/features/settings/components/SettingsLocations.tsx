@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 
 import { toast } from "sonner";
+import Link from "next/link";
+import { useGetBillingOverviewQuery, useGetSubscriptionAccessQuery } from "@/store/api/billingApi";
+import { LocationCapacityDialog } from "./LocationCapacityDialog";
 
 import {
   useGetLocationsQuery,
@@ -112,6 +115,24 @@ function LocationManagement({
   isOwner,
 }: SettingsLocationsProps) {
   const [showCreate, setShowCreate] = useState(false);
+  const [showPurchase, setShowPurchase] = useState(false);
+  const billingQuery = useGetBillingOverviewQuery(organizationId, {
+    skip: !organizationId || !isOwner,
+    refetchOnMountOrArgChange: true,
+  });
+  const accessQuery = useGetSubscriptionAccessQuery(organizationId, {
+    skip: !organizationId || !isOwner,
+    refetchOnMountOrArgChange: true,
+  });
+  const billing = billingQuery.currentData;
+  const billingReady = !!billing && !billingQuery.isFetching && !billingQuery.isError;
+  const fullAccess = accessQuery.currentData?.accessMode === "FULL" && !accessQuery.isError && !accessQuery.isFetching;
+  const pending = !!(billing?.locationCapacityChangePending || billing?.pendingChange || billing?.checkoutPending);
+  const canCreate = isOwner && billingReady && fullAccess && !pending &&
+    (billing.billingExempt || (billing.usage.availableLocations ?? 0) > 0);
+  const canPurchase = isOwner && billingReady && fullAccess && !pending &&
+    !billing.billingExempt && billing.subscription.plan?.id === "pro" &&
+    !!billing.subscription.plan.additionalLocationPricing;
 
   const [selectedLocationId, setSelectedLocationId] =
     useState<string | null>(null);
@@ -155,8 +176,14 @@ function LocationManagement({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            disabled={isFetching}
-            onClick={() => void refetch()}
+            disabled={isFetching || billingQuery.isFetching || accessQuery.isFetching}
+            onClick={() => {
+              void refetch();
+              if (isOwner) {
+                void billingQuery.refetch();
+                void accessQuery.refetch();
+              }
+            }}
             className={secondaryButton}
           >
             <RefreshCw
@@ -167,7 +194,7 @@ function LocationManagement({
             Refresh
           </button>
 
-          {isOwner ? (
+          {canCreate ? (
             <button
               type="button"
               onClick={() => {
@@ -183,6 +210,61 @@ function LocationManagement({
           ) : null}
         </div>
       </div>
+
+      {isOwner ? (
+        <section className="space-y-3 rounded-xl border bg-card p-5">
+          <h3 className="font-semibold">Subscription Capacity</h3>
+          {!billingReady || accessQuery.isFetching ? (
+            <p className="text-sm text-muted-foreground">
+              {billingQuery.isError || accessQuery.isError
+                ? "Unable to verify subscription capacity. Refresh to try again."
+                : "Checking subscription capacity..."}
+            </p>
+          ) : billing ? (
+            <>
+              <p className="text-lg font-semibold">
+                {billing.usage.activeLocations} / {billing.billingExempt ? "Unlimited" : billing.usage.locationLimit ?? "Unavailable"} shops
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {billing.billingExempt ? "Billing-exempt organization" : billing.subscription.plan?.name ?? "No subscription plan"}
+              </p>
+              {pending ? (
+                <p className="text-sm text-amber-600">A billing change is pending. Refresh after it is resolved.</p>
+              ) : !fullAccess ? (
+                <p className="text-sm text-muted-foreground">Subscription access must be restored before adding shops.</p>
+              ) : !canCreate && !canPurchase && !billing.billingExempt ? (
+                <p className="text-sm text-muted-foreground">Upgrade your subscription to add more shops.</p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {canPurchase ? (
+                  <button type="button" className={primaryButton} onClick={() => {
+                    setShowCreate(false);
+                    setShowPurchase(true);
+                  }}>
+                    Purchase Additional Capacity
+                  </button>
+                ) : null}
+                {!billing.billingExempt ? (
+                  <Link href="/settings?tab=billing" className={secondaryButton}>Manage Billing</Link>
+                ) : null}
+              </div>
+            </>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showPurchase && billing && isOwner ? (
+        <LocationCapacityDialog
+          organizationId={organizationId}
+          currentAdditionalLocationQuantity={billing.subscription.additionalLocationQuantity}
+          onApplied={() => { void refetch(); }}
+          onClose={() => {
+            setShowPurchase(false);
+            void billingQuery.refetch();
+            void accessQuery.refetch();
+          }}
+        />
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border bg-card p-5">
@@ -210,10 +292,13 @@ function LocationManagement({
         </div>
       </div>
 
-      {showCreate && isOwner ? (
+      {showCreate && canCreate ? (
         <CreateLocationForm
           organizationId={organizationId}
-          onClose={() => setShowCreate(false)}
+          onClose={() => {
+            setShowCreate(false);
+            void billingQuery.refetch();
+          }}
         />
       ) : null}
 

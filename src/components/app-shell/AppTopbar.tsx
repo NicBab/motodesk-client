@@ -29,6 +29,10 @@ import {
   useGetMyOrganizationsQuery,
 } from "@/store/api/organizationsApi";
 
+import {
+  ShopLocationSelector,
+} from "./ShopLocationSelector";
+
 //************************************************************** */
 
 type AppTopbarProps = {
@@ -170,6 +174,13 @@ export function AppTopbar({
       </nav>
 
       <div className="flex items-center gap-3">
+        {activeOrganizationId && !isSwitching ? (
+          <ShopLocationSelector
+            key={activeOrganizationId}
+            switchingEnabled={false}
+          />
+        ) : null}
+
         <Link
           href="/settings"
           className="grid h-9 w-9 place-items-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900"
